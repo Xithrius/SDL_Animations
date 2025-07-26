@@ -27,7 +27,7 @@ const int WINDOW_Y_CONTRAINTS = WINDOW_HEIGHT - WINDOW_Y_PADDING * 2;
 
 const bool RESTRICT_POINT_SPAWN = false;
 
-const int POINT_COUNT = 100;
+const int POINT_COUNT = 1000;
 const int TRAIL_LENGTH = 20;
 
 const float MAX_POINT_SPEED = 100.0f;
@@ -154,16 +154,24 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(context->renderer);
 
-  // Render points with gradient from white to black
-  for (int i = 0; i < context->points.size(); i++) {
-    for (int j = 0; j < context->points[i].size(); j++) {
-      // Calculate gradient: white (255) to black (0) based on trail position
-      int color_value = 255 - (j * 255 / (TRAIL_LENGTH - 1));
-      SDL_SetRenderDrawColor(context->renderer, color_value, color_value,
-                             color_value, SDL_ALPHA_OPAQUE);
-      SDL_RenderPoint(context->renderer, context->points[i][j].x,
-                      context->points[i][j].y);
+  for (int j = 0; j < TRAIL_LENGTH; j++) {
+    // Calculate gradient: white (255) to black (0) based on trail position
+    int color_value = 255 - (j * 255 / (TRAIL_LENGTH - 1));
+
+    SDL_SetRenderDrawColor(context->renderer, color_value, color_value,
+                           color_value, SDL_ALPHA_OPAQUE);
+
+    // Collect all points at this trail position
+    std::vector<SDL_FPoint> column_points;
+    column_points.reserve(context->points.size());
+
+    for (int i = 0; i < context->points.size(); i++) {
+      column_points.push_back(context->points[i][j]);
     }
+
+    // Render all points at this trail position in one batch
+    SDL_RenderPoints(context->renderer, column_points.data(),
+                     column_points.size());
   }
 
   SDL_RenderPresent(context->renderer);
