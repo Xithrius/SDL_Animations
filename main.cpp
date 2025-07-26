@@ -135,9 +135,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   int current_width, current_height;
   SDL_GetWindowSize(context->window, &current_width, &current_height);
 
-  for (int i = 0; i < context->points.size(); i++) {
+  for (size_t i = 0; i < context->points.size(); i++) {
     auto &points = context->points[i];
-    for (int j = 0; j < points.size(); j++) {
+    for (size_t j = 0; j < points.size(); j++) {
       points[j].x += context->point_speeds[i] * delta_seconds;
       points[j].y += context->point_speeds[i] * delta_seconds;
 
@@ -165,7 +165,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     std::vector<SDL_FPoint> column_points;
     column_points.reserve(context->points.size());
 
-    for (int i = 0; i < context->points.size(); i++) {
+    for (size_t i = 0; i < context->points.size(); i++) {
       column_points.push_back(context->points[i][j]);
     }
 
