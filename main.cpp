@@ -1,3 +1,5 @@
+#include <SDL3/SDL_log.h>
+#include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #define SDL_MAIN_USE_CALLBACKS 1 /* use the callbacks instead of main() */
 #include <SDL3/SDL.h>
@@ -12,8 +14,10 @@ const std::string APPLICATION_IDENTIFIER = "com.example.animations";
 const std::string VERSION_STRING = "0.1.0";
 
 const float TARGET_FRAME_RATE = 144.0f;
-const float WINDOW_WIDTH = 640.0f;
-const float WINDOW_HEIGHT = 480.0f;
+const float WINDOW_WIDTH = 1920.0f;
+const float WINDOW_HEIGHT = 1080.0f;
+
+const int WINDOW_FLAGS = SDL_WINDOW_RESIZABLE;
 
 const int WINDOW_X_PADDING = WINDOW_WIDTH / 4;
 const int WINDOW_Y_PADDING = WINDOW_HEIGHT / 4;
@@ -21,15 +25,20 @@ const int WINDOW_Y_PADDING = WINDOW_HEIGHT / 4;
 const int WINDOW_X_CONTRAINTS = WINDOW_WIDTH - WINDOW_X_PADDING * 2;
 const int WINDOW_Y_CONTRAINTS = WINDOW_HEIGHT - WINDOW_Y_PADDING * 2;
 
-const bool RESTRICT_POINT_SPAWN = true;
+const bool RESTRICT_POINT_SPAWN = false;
 
-const int POINT_COUNT = 500;
+const int POINT_COUNT = 100;
+const int TRAIL_LENGTH = 20;
+
+const float MAX_POINT_SPEED = 100.0f;
+const float MIN_POINT_SPEED = 10.0f;
 
 class AppContext {
  public:
   SDL_Window *window;
   SDL_Renderer *renderer;
-  std::vector<SDL_FPoint> points;
+  std::vector<std::vector<SDL_FPoint>> points;
+  std::vector<float> point_speeds;
   Uint64 last_frame_time;
   float target_frame_rate;
   float target_frame_time;
@@ -41,7 +50,8 @@ class AppContext {
         target_frame_rate(TARGET_FRAME_RATE),
         target_frame_time(0.0f) {
     if (!SDL_CreateWindowAndRenderer(APPLICATION_TITLE.c_str(), WINDOW_WIDTH,
-                                     WINDOW_HEIGHT, 0, &window, &renderer)) {
+                                     WINDOW_HEIGHT, WINDOW_FLAGS, &window,
+                                     &renderer)) {
       SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
       throw std::runtime_error("Failed to create window/renderer");
     }
@@ -55,12 +65,24 @@ class AppContext {
 
     points.resize(POINT_COUNT);
     for (int i = 0; i < POINT_COUNT; i++) {
+      point_speeds.push_back(SDL_randf() * MAX_POINT_SPEED + MIN_POINT_SPEED);
+
+      points[i].resize(TRAIL_LENGTH);
+
+      float initial_x = 0;
+      float initial_y = 0;
+
       if (RESTRICT_POINT_SPAWN) {
-        points[i].x = SDL_randf() * WINDOW_X_CONTRAINTS + WINDOW_X_PADDING;
-        points[i].y = SDL_randf() * WINDOW_Y_CONTRAINTS + WINDOW_Y_PADDING;
+        initial_x = SDL_randf() * WINDOW_X_CONTRAINTS + WINDOW_X_PADDING;
+        initial_y = SDL_randf() * WINDOW_Y_CONTRAINTS + WINDOW_Y_PADDING;
       } else {
-        points[i].x = SDL_randf() * WINDOW_WIDTH;
-        points[i].y = SDL_randf() * WINDOW_HEIGHT;
+        initial_x = SDL_randf() * WINDOW_WIDTH;
+        initial_y = SDL_randf() * WINDOW_HEIGHT;
+      }
+
+      for (int j = 0; j < TRAIL_LENGTH; j++) {
+        points[i][j].x = initial_x - j;
+        points[i][j].y = initial_y - j;
       }
     }
   }
@@ -107,31 +129,44 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_Delay((Uint32)(context->target_frame_time - elapsed_time));
   }
 
-  SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-  SDL_RenderPoints(context->renderer, context->points.data(),
-                   context->points.size());
+  float delta_seconds = elapsed_time / 1000.0f;
+
+  // Get current window dimensions
+  int current_width, current_height;
+  SDL_GetWindowSize(context->window, &current_width, &current_height);
+
+  for (int i = 0; i < context->points.size(); i++) {
+    auto &points = context->points[i];
+    for (int j = 0; j < points.size(); j++) {
+      points[j].x += context->point_speeds[i] * delta_seconds;
+      points[j].y += context->point_speeds[i] * delta_seconds;
+
+      if (points[j].x > current_width) {
+        points[j].x = 0;
+      }
+      if (points[j].y > current_height) {
+        points[j].y = 0;
+      }
+    }
+  }
+
+  // Clear the screen with black background
+  SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+  SDL_RenderClear(context->renderer);
+
+  // Render points with gradient from white to black
+  for (int i = 0; i < context->points.size(); i++) {
+    for (int j = 0; j < context->points[i].size(); j++) {
+      // Calculate gradient: white (255) to black (0) based on trail position
+      int color_value = 255 - (j * 255 / (TRAIL_LENGTH - 1));
+      SDL_SetRenderDrawColor(context->renderer, color_value, color_value,
+                             color_value, SDL_ALPHA_OPAQUE);
+      SDL_RenderPoint(context->renderer, context->points[i][j].x,
+                      context->points[i][j].y);
+    }
+  }
 
   SDL_RenderPresent(context->renderer);
-
-  // SDL_SetRenderDrawColor(context->renderer, 33, 33, 33, SDL_ALPHA_OPAQUE);
-  // SDL_RenderClear(context->renderer);
-  // SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-  // rect.x = rect.y = 100;
-  // rect.w = 440;
-  // rect.h = 280;
-  // SDL_RenderFillRect(context->renderer, &rect);
-  // SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-  // SDL_RenderPoints(context->renderer, context->points, 500);
-  // SDL_SetRenderDrawColor(context->renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
-  // rect.x += 30;
-  // rect.y += 30;
-  // rect.w -= 60;
-  // rect.h -= 60;
-  // SDL_RenderRect(context->renderer, &rect);
-  // SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-  // SDL_RenderLine(context->renderer, 0, 0, 640, 480);
-  // SDL_RenderLine(context->renderer, 0, 480, 640, 0);
-  // SDL_RenderPresent(context->renderer);
 
   return SDL_APP_CONTINUE;
 }
