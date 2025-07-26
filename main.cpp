@@ -1,10 +1,11 @@
+#include <SDL3/SDL_render.h>
 #define SDL_MAIN_USE_CALLBACKS 1 /* use the callbacks instead of main() */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#include <new>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 const std::string APPLICATION_TITLE = "SDL3 Animations";
 const std::string APPLICATION_IDENTIFIER = "com.example.animations";
@@ -14,11 +15,21 @@ const float TARGET_FRAME_RATE = 144.0f;
 const float WINDOW_WIDTH = 640.0f;
 const float WINDOW_HEIGHT = 480.0f;
 
+const int WINDOW_X_PADDING = WINDOW_WIDTH / 4;
+const int WINDOW_Y_PADDING = WINDOW_HEIGHT / 4;
+
+const int WINDOW_X_CONTRAINTS = WINDOW_WIDTH - WINDOW_X_PADDING * 2;
+const int WINDOW_Y_CONTRAINTS = WINDOW_HEIGHT - WINDOW_Y_PADDING * 2;
+
+const bool RESTRICT_POINT_SPAWN = true;
+
+const int POINT_COUNT = 500;
+
 class AppContext {
  public:
   SDL_Window *window;
   SDL_Renderer *renderer;
-  SDL_FPoint points[500];
+  std::vector<SDL_FPoint> points;
   Uint64 last_frame_time;
   float target_frame_rate;
   float target_frame_time;
@@ -34,7 +45,6 @@ class AppContext {
       SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
       throw std::runtime_error("Failed to create window/renderer");
     }
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
     target_frame_time = 1000.0f / target_frame_rate;
 
@@ -43,15 +53,16 @@ class AppContext {
 
     last_frame_time = SDL_GetTicks();
 
-    for (int i = 0; i < 500; i++) {
-      points[i].x = (SDL_randf() * 440.0f) + 100.0f;
-      points[i].y = (SDL_randf() * 280.0f) + 100.0f;
+    points.resize(POINT_COUNT);
+    for (int i = 0; i < POINT_COUNT; i++) {
+      if (RESTRICT_POINT_SPAWN) {
+        points[i].x = SDL_randf() * WINDOW_X_CONTRAINTS + WINDOW_X_PADDING;
+        points[i].y = SDL_randf() * WINDOW_Y_CONTRAINTS + WINDOW_Y_PADDING;
+      } else {
+        points[i].x = SDL_randf() * WINDOW_WIDTH;
+        points[i].y = SDL_randf() * WINDOW_HEIGHT;
+      }
     }
-  }
-
-  ~AppContext() {
-    // SDL will clean up window/renderer, but you could add custom cleanup here
-    // if needed
   }
 };
 
@@ -86,38 +97,42 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate) {
-  SDL_FRect rect;
-  Uint64 current_time;
-  float elapsed_time;
   AppContext *context = static_cast<AppContext *>(appstate);
 
-  /* Frame rate limiting */
-  current_time = SDL_GetTicks();
-  elapsed_time = (float)(current_time - context->last_frame_time);
+  Uint64 current_time = SDL_GetTicks();
+  float elapsed_time = (float)(current_time - context->last_frame_time);
+  context->last_frame_time = current_time;
+
   if (elapsed_time < context->target_frame_time) {
     SDL_Delay((Uint32)(context->target_frame_time - elapsed_time));
   }
-  context->last_frame_time = SDL_GetTicks();
 
-  SDL_SetRenderDrawColor(context->renderer, 33, 33, 33, SDL_ALPHA_OPAQUE);
-  SDL_RenderClear(context->renderer);
-  SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-  rect.x = rect.y = 100;
-  rect.w = 440;
-  rect.h = 280;
-  SDL_RenderFillRect(context->renderer, &rect);
-  SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-  SDL_RenderPoints(context->renderer, context->points, 500);
-  SDL_SetRenderDrawColor(context->renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
-  rect.x += 30;
-  rect.y += 30;
-  rect.w -= 60;
-  rect.h -= 60;
-  SDL_RenderRect(context->renderer, &rect);
-  SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, SDL_ALPHA_OPAQUE);
-  SDL_RenderLine(context->renderer, 0, 0, 640, 480);
-  SDL_RenderLine(context->renderer, 0, 480, 640, 0);
+  SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+  SDL_RenderPoints(context->renderer, context->points.data(),
+                   context->points.size());
+
   SDL_RenderPresent(context->renderer);
+
+  // SDL_SetRenderDrawColor(context->renderer, 33, 33, 33, SDL_ALPHA_OPAQUE);
+  // SDL_RenderClear(context->renderer);
+  // SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+  // rect.x = rect.y = 100;
+  // rect.w = 440;
+  // rect.h = 280;
+  // SDL_RenderFillRect(context->renderer, &rect);
+  // SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+  // SDL_RenderPoints(context->renderer, context->points, 500);
+  // SDL_SetRenderDrawColor(context->renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
+  // rect.x += 30;
+  // rect.y += 30;
+  // rect.w -= 60;
+  // rect.h -= 60;
+  // SDL_RenderRect(context->renderer, &rect);
+  // SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
+  // SDL_RenderLine(context->renderer, 0, 0, 640, 480);
+  // SDL_RenderLine(context->renderer, 0, 480, 640, 0);
+  // SDL_RenderPresent(context->renderer);
+
   return SDL_APP_CONTINUE;
 }
 
