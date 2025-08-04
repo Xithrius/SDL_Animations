@@ -1,2 +1,4 @@
 build/
 animations
+compile_commands.json
+.cache
