@@ -16,9 +16,7 @@ AppContext::AppContext()
     : window(nullptr),
       renderer(nullptr),
       font(nullptr),
-      last_frame_time(0),
-      target_frame_rate(TARGET_FRAME_RATE),
-      target_frame_time(0.0f) {
+      target_frame_rate(TARGET_FRAME_RATE) {
   if (!SDL_CreateWindowAndRenderer(APPLICATION_TITLE.c_str(), WINDOW_WIDTH,
                                    WINDOW_HEIGHT, WINDOW_FLAGS, &window,
                                    &renderer)) {
@@ -39,12 +37,11 @@ AppContext::AppContext()
     // Don't throw here, just log the error - text rendering will be disabled
   }
 
-  target_frame_time = 1000.0f / target_frame_rate;
-
-  SDL_Log("Frame rate limited to %.0f FPS (%.2f ms per frame)",
-          target_frame_rate, target_frame_time);
-
-  last_frame_time = SDL_GetTicks();
+  // Log if frame rate was set from environment variable
+  SDL_Log(
+      "Target frame rate set from environment variable "
+      "SDL_TARGET_FRAME_RATE=%f",
+      TARGET_FRAME_RATE);
 
   points.resize(POINT_COUNT);
   for (int i = 0; i < POINT_COUNT; i++) {
@@ -75,18 +72,6 @@ AppContext::~AppContext() {
     TTF_CloseFont(font);
   }
   TTF_Quit();
-}
-
-float AppContext::updateFrameTiming() {
-  Uint64 current_time = SDL_GetTicks();
-  float elapsed_time = (float)(current_time - this->last_frame_time);
-  this->last_frame_time = current_time;
-
-  if (elapsed_time < this->target_frame_time) {
-    SDL_Delay((Uint32)(this->target_frame_time - elapsed_time));
-  }
-
-  return elapsed_time / 1000.0f;
 }
 
 void AppContext::renderText(const std::string& text, int x, int y,
