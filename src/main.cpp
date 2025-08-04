@@ -3,6 +3,7 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 
+#include <cmath>
 #include <memory>
 #include <string>
 #include <vector>
@@ -14,16 +15,22 @@ void createPoints(AppContext* context, float deltaTime, int current_width,
                   int current_height) {
   for (size_t i = 0; i < context->points.size(); i++) {
     auto& points = context->points[i];
-    for (size_t j = 0; j < points.size(); j++) {
-      points[j].x += context->point_speeds[i] * deltaTime;
-      points[j].y += context->point_speeds[i] * deltaTime;
+    double speed = static_cast<double>(context->point_speeds[i]);
 
-      if (points[j].x > current_width) {
-        points[j].x = 0;
-      }
-      if (points[j].y > current_height) {
-        points[j].y = 0;
-      }
+    for (size_t j = 0; j < points.size(); j++) {
+      // Use double precision for calculations to avoid floating-point drift
+      double newX = static_cast<double>(points[j].x) +
+                    speed * static_cast<double>(deltaTime);
+      double newY = static_cast<double>(points[j].y) +
+                    speed * static_cast<double>(deltaTime);
+
+      // Use modulo for wrapping to maintain precision
+      newX = fmod(newX, static_cast<double>(current_width));
+      newY = fmod(newY, static_cast<double>(current_height));
+
+      // Convert back to float for rendering
+      points[j].x = static_cast<float>(newX);
+      points[j].y = static_cast<float>(newY);
     }
   }
 }
@@ -48,11 +55,11 @@ int main() {
     return 1;
   }
 
-  const int frameDelay = 1000 / TARGET_FRAME_RATE;
+  const float frameDelay = 1000.0f / TARGET_FRAME_RATE;
 
   Uint32 frameStart;
   Uint32 lastFrameTime = SDL_GetTicks();
-  int frameTime;
+  float frameTime;
 
   // Main game loop
   bool running = true;
