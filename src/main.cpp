@@ -89,6 +89,18 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
                      column_points.size());
   }
 
+  // Render some text to demonstrate SDL_ttf
+  SDL_Color text_color = {255, 255, 255, 255};  // White text
+  context->renderText("SDL Animations with Text Rendering", 10, 10, text_color);
+
+  // Render FPS counter
+  std::string fps_text = "FPS: " + std::to_string((int)(1.0f / delta_seconds));
+  context->renderText(fps_text, 10, 40, text_color);
+
+  // Render point count
+  std::string points_text = "Points: " + std::to_string(context->points.size());
+  context->renderText(points_text, 10, 70, text_color);
+
   SDL_RenderPresent(context->renderer);
 
   return SDL_APP_CONTINUE;

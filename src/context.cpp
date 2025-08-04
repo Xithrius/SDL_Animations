@@ -5,16 +5,17 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include "constants.h"
 
 AppContext::AppContext()
     : window(nullptr),
       renderer(nullptr),
+      font(nullptr),
       last_frame_time(0),
       target_frame_rate(TARGET_FRAME_RATE),
       target_frame_time(0.0f) {
@@ -23,6 +24,19 @@ AppContext::AppContext()
                                    &renderer)) {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
     throw std::runtime_error("Failed to create window/renderer");
+  }
+
+  // Initialize SDL_ttf
+  if (TTF_Init() < 0) {
+    SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+    throw std::runtime_error("Failed to initialize SDL_ttf");
+  }
+
+  // Load a default font (you can replace this with your own font file)
+  font = TTF_OpenFont("../assets/fonts/SpaceMono-Regular.ttf", 24);
+  if (!font) {
+    SDL_Log("Couldn't load font: %s", SDL_GetError());
+    // Don't throw here, just log the error - text rendering will be disabled
   }
 
   target_frame_time = 1000.0f / target_frame_rate;
@@ -56,6 +70,13 @@ AppContext::AppContext()
   }
 }
 
+AppContext::~AppContext() {
+  if (font) {
+    TTF_CloseFont(font);
+  }
+  TTF_Quit();
+}
+
 float AppContext::updateFrameTiming() {
   Uint64 current_time = SDL_GetTicks();
   float elapsed_time = (float)(current_time - this->last_frame_time);
@@ -66,4 +87,33 @@ float AppContext::updateFrameTiming() {
   }
 
   return elapsed_time / 1000.0f;
+}
+
+void AppContext::renderText(const std::string& text, int x, int y,
+                            SDL_Color color) {
+  if (!font) {
+    return;  // Font not loaded, skip text rendering
+  }
+
+  SDL_Surface* text_surface =
+      TTF_RenderText_Solid(font, text.c_str(), text.length(), color);
+  if (!text_surface) {
+    SDL_Log("Couldn't render text: %s", SDL_GetError());
+    return;
+  }
+
+  SDL_Texture* text_texture =
+      SDL_CreateTextureFromSurface(renderer, text_surface);
+  if (!text_texture) {
+    SDL_Log("Couldn't create texture from surface: %s", SDL_GetError());
+    SDL_DestroySurface(text_surface);
+    return;
+  }
+
+  SDL_FRect dest_rect = {(float)x, (float)y, (float)text_surface->w,
+                         (float)text_surface->h};
+  SDL_RenderTexture(renderer, text_texture, nullptr, &dest_rect);
+
+  SDL_DestroySurface(text_surface);
+  SDL_DestroyTexture(text_texture);
 }
