@@ -57,8 +57,8 @@ int main() {
 
   const float frameDelay = 1000.0f / TARGET_FRAME_RATE;
 
-  Uint32 frameStart;
-  Uint32 lastFrameTime = SDL_GetTicks();
+  float frameStart;
+  float lastFrameTime = SDL_GetTicks();
   float frameTime;
 
   // Main game loop
@@ -68,8 +68,7 @@ int main() {
   while (running) {
     frameStart = SDL_GetTicks();
 
-    // Calculate delta time in seconds
-    Uint32 currentFrameTime = SDL_GetTicks();
+    float currentFrameTime = SDL_GetTicks();
     float deltaTime = (currentFrameTime - lastFrameTime) / 1000.0f;
     lastFrameTime = currentFrameTime;
 
@@ -114,7 +113,7 @@ int main() {
 
     // Display FPS in text
     float fps = (deltaTime > 0.0f) ? (1.0f / deltaTime) : 0.0f;
-    std::string fps_text = "FPS: " + std::to_string(static_cast<int>(fps));
+    std::string fps_text = "FPS: " + std::to_string(static_cast<float>(fps));
     context->renderText(fps_text, 10, 40, text_color);
 
     std::string points_text =

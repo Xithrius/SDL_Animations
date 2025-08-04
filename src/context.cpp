@@ -80,7 +80,6 @@ void AppContext::renderText(const std::string& text, int x, int y,
     return;  // Font not loaded, skip text rendering
   }
 
-  // Use anti-aliased rendering for smooth text
   SDL_Surface* text_surface =
       TTF_RenderText_Blended(font, text.c_str(), text.length(), color);
   if (!text_surface) {
