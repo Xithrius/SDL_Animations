@@ -27,7 +27,7 @@ AppContext::AppContext()
   }
 
   // Initialize SDL_ttf
-  if (TTF_Init() < 0) {
+  if (!TTF_Init()) {
     SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
     throw std::runtime_error("Failed to initialize SDL_ttf");
   }
@@ -95,8 +95,9 @@ void AppContext::renderText(const std::string& text, int x, int y,
     return;  // Font not loaded, skip text rendering
   }
 
+  // Use anti-aliased rendering for smooth text
   SDL_Surface* text_surface =
-      TTF_RenderText_Solid(font, text.c_str(), text.length(), color);
+      TTF_RenderText_Blended(font, text.c_str(), text.length(), color);
   if (!text_surface) {
     SDL_Log("Couldn't render text: %s", SDL_GetError());
     return;
