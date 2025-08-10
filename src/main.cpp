@@ -86,7 +86,6 @@ int main() {
     createPoints(context.get(), deltaTime, current_width, current_height);
 
     // Clear the screen with black background
-    SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(context->renderer);
 
     for (int j = 0; j < TRAIL_LENGTH; j++) {
