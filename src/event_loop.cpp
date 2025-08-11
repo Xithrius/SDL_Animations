@@ -18,6 +18,8 @@ EventLoop::EventLoop() {
  * @brief Runs the event loop.
  */
 void EventLoop::run() {
+  SPDLOG_INFO("Started event loop");
+
   float lastTime = SDL_GetTicks() / 1000.0f;
 
   while (running) {

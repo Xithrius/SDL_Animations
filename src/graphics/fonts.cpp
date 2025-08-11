@@ -49,11 +49,9 @@ FontRef FontRef::load() {
 
 void FontRef::loadFont() {
   if (font_ptr) {
-    return;  // Already loaded
+    return;
   }
 
-  SPDLOG_INFO("Loading embedded font");
-  // Load font from embedded data using SDL_IOStream
   SDL_IOStream* io =
       SDL_IOFromConstMem(assets_fonts_SpaceMono_Regular_ttf,
                          sizeof(assets_fonts_SpaceMono_Regular_ttf));

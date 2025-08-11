@@ -20,21 +20,18 @@ AppContext::AppContext()
   if (!SDL_CreateWindowAndRenderer(APPLICATION_TITLE.c_str(), WINDOW_WIDTH,
                                    WINDOW_HEIGHT, WINDOW_FLAGS, &window,
                                    &renderer)) {
-    SPDLOG_ERROR("Couldn't create window/renderer: %s", SDL_GetError());
+    SPDLOG_ERROR("Couldn't create window/renderer: {}", SDL_GetError());
     throw std::runtime_error("Failed to create window/renderer");
   }
 
   if (!TTF_Init()) {
-    SPDLOG_ERROR("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+    SPDLOG_ERROR("Couldn't initialize SDL_ttf: {}", SDL_GetError());
     throw std::runtime_error("Failed to initialize SDL_ttf");
   }
 
   font.loadFont();
 
-  SPDLOG_INFO(
-      "Target frame rate set from environment variable "
-      "SDL_TARGET_FRAME_RATE=%f",
-      TARGET_FRAME_RATE);
+  SPDLOG_INFO("Target frame rate set to {}", TARGET_FRAME_RATE);
 }
 
 AppContext::~AppContext() {

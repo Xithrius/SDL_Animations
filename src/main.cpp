@@ -10,7 +10,7 @@ int main() {
   spdlog::set_pattern("[%D %H:%M:%S %z] [%^%l%$] %v");
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    SPDLOG_ERROR("Couldn't initialize SDL: %s", SDL_GetError());
+    SPDLOG_ERROR("Couldn't initialize SDL: {}", SDL_GetError());
     return 1;
   }
 
@@ -20,7 +20,6 @@ int main() {
   std::unique_ptr<EventLoop> event_loop = std::make_unique<EventLoop>();
   event_loop->setTargetFPS(TARGET_FRAME_RATE);
 
-  SPDLOG_INFO("Starting event loop...");
   event_loop->run();
 
   SDL_Quit();

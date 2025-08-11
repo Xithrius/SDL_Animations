@@ -12,8 +12,6 @@
 #include "context.h"
 
 Graphics::Graphics(AppContext* context) : context(context) {
-  SPDLOG_INFO("Graphics constructor");
-
   this->context->points.resize(POINT_COUNT);
   for (int i = 0; i < POINT_COUNT; i++) {
     this->context->point_speeds.push_back(SDL_randf() * MAX_POINT_SPEED +
