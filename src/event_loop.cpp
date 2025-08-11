@@ -20,18 +20,14 @@ EventLoop::EventLoop() {
 void EventLoop::run() {
   SPDLOG_INFO("Started event loop");
 
-  float lastTime = SDL_GetTicks() / 1000.0f;
+  Uint64 freq = SDL_GetPerformanceFrequency();
+  Uint64 last = SDL_GetPerformanceCounter();
+  double targetFrameTime = 1.0 / this->targetFPS;
 
   while (this->running) {
-    float currentTime = SDL_GetTicks() / 1000.0f;
-    float deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-
-    // Cap delta time to prevent spiral of death
-    if (deltaTime > 0.25f) {
-      deltaTime = 0.25f;
-      SPDLOG_WARN("Large delta time detected: {}, capped to 0.25", deltaTime);
-    }
+    Uint64 now = SDL_GetPerformanceCounter();
+    double deltaTime = (double)(now - last) / freq;
+    last = now;
 
     this->HandleInputEvents();
 
@@ -45,12 +41,9 @@ void EventLoop::run() {
 
     this->graphics->render(fps, getTickRate());
 
-    if (this->targetFPS > 0) {
-      float frameTime = 1.0f / this->targetFPS;
-      float elapsed = (SDL_GetTicks() / 1000.0f) - currentTime;
-      if (elapsed < frameTime) {
-        SDL_Delay(static_cast<Uint32>((frameTime - elapsed) * 1000));
-      }
+    double elapsed = (double)(SDL_GetPerformanceCounter() - now) / freq;
+    if (elapsed < targetFrameTime) {
+      SDL_Delay((Uint32)((targetFrameTime - elapsed) * 1000.0 + 0.5));
     }
   }
 }

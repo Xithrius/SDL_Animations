@@ -95,10 +95,6 @@ void Graphics::renderText(const std::string& text, int x, int y,
 void Graphics::render(float fps, float tickRate) {
   SDL_RenderClear(this->context->renderer);
 
-  if (this->context->points.empty()) {
-    return;
-  }
-
   for (int j = 0; j < TRAIL_LENGTH; j++) {
     // Calculate gradient: white (255) to black (0) based on trail position
     int color_value = 255 - (j * 255 / (TRAIL_LENGTH - 1));
