@@ -15,8 +15,11 @@ class AppContext {
   SDL_Window* window;
   SDL_Renderer* renderer;
   FontRef font;
+
   std::vector<std::vector<SDL_FPoint>> points;
   std::vector<float> point_speeds;
+  float point_speed_multiplier = 1.0f;
+
   float target_frame_rate;
   ImGuiIO* io;
 

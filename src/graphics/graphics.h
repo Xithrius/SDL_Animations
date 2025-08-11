@@ -9,8 +9,6 @@ class Graphics {
  private:
   AppContext* context;
 
-  bool show_demo_window = true;
-  bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
  public:
@@ -18,6 +16,7 @@ class Graphics {
   ~Graphics() = default;
 
   void updatePoints(float deltaTime);
+
   void renderText(const std::string& text, int x, int y,
                   SDL_Color color = {255, 255, 255, 255});
 
