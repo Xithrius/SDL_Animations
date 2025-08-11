@@ -27,6 +27,10 @@ include_directories(
 set(SOURCES
     src/main.cpp
     src/context.cpp
+    src/event_loop.cpp
+    src/graphics/graphics.cpp
+    src/graphics/fonts.cpp
+    src/graphics/embedded_fonts/space_mono_regular.h
 )
 
 # Define the executable
