@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <string>
 
+const SDL_WindowFlags SDL_WINDOW_FLAGS =
+    SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
 const std::string APPLICATION_TITLE = "SDL3 Animations";
 const std::string APPLICATION_IDENTIFIER = "com.example.animations";
 const std::string VERSION_STRING = "0.1.0";

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "graphics/fonts.h"
+#include "imgui.h"
 
 class AppContext {
  public:
@@ -17,6 +18,7 @@ class AppContext {
   std::vector<std::vector<SDL_FPoint>> points;
   std::vector<float> point_speeds;
   float target_frame_rate;
+  ImGuiIO* io;
 
   AppContext();
   ~AppContext();

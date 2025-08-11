@@ -3,6 +3,9 @@
 #include <spdlog/spdlog.h>
 
 #include "constants.h"
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_sdlrenderer3.h"
 
 EventLoop::EventLoop() {
   try {
@@ -30,24 +33,26 @@ void EventLoop::run() {
     // Cap delta time to prevent spiral of death
     if (deltaTime > 0.25f) {
       deltaTime = 0.25f;
-      SPDLOG_WARN("Large delta time detected: %f, capped to 0.25", deltaTime);
+      SPDLOG_WARN("Large delta time detected: {}, capped to 0.25", deltaTime);
     }
 
-    // Handle events
-    HandleInputEvents();
+    this->HandleInputEvents();
 
-    // Accumulate time for fixed timestep
     accumulator += deltaTime;
-
-    // Run fixed timestep updates (event logic)
     while (accumulator >= FIXED_TIMESTEP) {
-      updateEvents(FIXED_TIMESTEP);
+      this->updateEvents(FIXED_TIMESTEP);
       accumulator -= FIXED_TIMESTEP;
     }
 
-    updateFPS(deltaTime);
+    this->updateFPS(deltaTime);
 
-    render();
+    this->render();
+
+    // Delay if window is minimized
+    // if (SDL_GetWindowFlags(this->context->window) & SDL_WINDOW_MINIMIZED) {
+    //   SDL_Delay(10);
+    //   continue;
+    // }
 
     if (targetFPS > 0) {
       float frameTime = 1.0f / targetFPS;
@@ -65,10 +70,11 @@ void EventLoop::run() {
 void EventLoop::HandleInputEvents() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
-    if (event.type == SDL_EVENT_QUIT) {
+    ImGui_ImplSDL3_ProcessEvent(&event);
+    if (event.type == SDL_EVENT_QUIT) this->running = false;
+    if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
+        event.window.windowID == SDL_GetWindowID(this->context->window))
       this->running = false;
-      break;
-    }
   }
 }
 
@@ -86,10 +92,6 @@ void EventLoop::updateEvents(float deltaTime) {
  */
 void EventLoop::render() {
   SDL_RenderClear(this->context->renderer);
-
-  if (this->context->points.empty()) {
-    return;
-  }
 
   for (int j = 0; j < TRAIL_LENGTH; j++) {
     // Calculate gradient: white (255) to black (0) based on trail position
@@ -111,20 +113,52 @@ void EventLoop::render() {
                      column_points.size());
   }
 
-  // Render UI text
-  SDL_Color text_color = {255, 255, 255, 255};
-  this->graphics->renderText("SDL Animations", 10, 10, text_color);
+  this->graphics->renderText("SDL Animations", 10, 10);
 
   std::string fps_text = "FPS: " + std::to_string(static_cast<int>(fps));
-  this->graphics->renderText(fps_text, 10, 40, text_color);
+  this->graphics->renderText(fps_text, 10, 40);
 
   std::string tick_text =
       "Event Logic: " + std::to_string(static_cast<int>(getTickRate())) + " Hz";
-  this->graphics->renderText(tick_text, 10, 70, text_color);
+  this->graphics->renderText(tick_text, 10, 70);
 
   std::string points_text =
       "Points: " + std::to_string(this->context->points.size());
-  this->graphics->renderText(points_text, 10, 100, text_color);
+  this->graphics->renderText(points_text, 10, 100);
+
+  // Start the Dear ImGui frame
+  ImGui_ImplSDLRenderer3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+
+  {
+    static int counter = 0;
+
+    ImGui::Begin("Hello, world!");
+
+    // ImGui::SliderInt("Points", this->context->po, 0.0f, 1.0f);
+    ImGui::ColorEdit3("clear color", (float*)&this->background_color);
+
+    if (ImGui::Button("Button")) counter++;
+    ImGui::SameLine();
+    ImGui::Text("counter = %d", counter);
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                1000.0f / this->context->io->Framerate,
+                this->context->io->Framerate);
+    ImGui::End();
+  }
+
+  ImGui::Render();
+  SDL_SetRenderScale(this->context->renderer,
+                     this->context->io->DisplayFramebufferScale.x,
+                     this->context->io->DisplayFramebufferScale.y);
+  SDL_SetRenderDrawColorFloat(this->context->renderer, this->background_color.x,
+                              this->background_color.y,
+                              this->background_color.z,
+                              this->background_color.w);
+  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(),
+                                        this->context->renderer);
 
   SDL_RenderPresent(this->context->renderer);
 }

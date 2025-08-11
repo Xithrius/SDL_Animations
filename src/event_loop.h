@@ -6,6 +6,7 @@
 
 #include "context.h"
 #include "graphics/graphics.h"
+#include "imgui.h"
 
 class EventLoop {
  private:
@@ -24,6 +25,8 @@ class EventLoop {
   float fps = 0.0f;
   int frameCount = 0;
   float fpsUpdateTimer = 0.0f;
+
+  ImVec4 background_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
  public:
   EventLoop();
