@@ -81,6 +81,4 @@ AppContext::~AppContext() {
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
-
-  SDL_Quit();
 }

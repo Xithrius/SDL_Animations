@@ -23,8 +23,10 @@ int main() {
     event_loop->run();
   } catch (const std::exception& e) {
     SPDLOG_ERROR("Fatal error: {}", e.what());
+    SDL_Quit();
     return -1;
   }
 
+  SDL_Quit();
   return 0;
 }
