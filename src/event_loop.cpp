@@ -66,7 +66,7 @@ void EventLoop::HandleInputEvents() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_EVENT_QUIT) {
-      running = false;
+      this->running = false;
       break;
     }
   }
@@ -78,50 +78,56 @@ void EventLoop::HandleInputEvents() {
  * @param deltaTime The time since the last update.
  */
 void EventLoop::updateEvents(float deltaTime) {
-  graphics->renderPoints(deltaTime);
+  this->graphics->renderPoints(deltaTime);
 }
 
 /**
  * @brief Renders all entities in the scene.
  */
 void EventLoop::render() {
-  SDL_RenderClear(context->renderer);
+  SDL_RenderClear(this->context->renderer);
 
-  // Render points with trail effect
+  if (this->context->points.empty()) {
+    return;
+  }
+
   for (int j = 0; j < TRAIL_LENGTH; j++) {
     // Calculate gradient: white (255) to black (0) based on trail position
     int color_value = 255 - (j * 255 / (TRAIL_LENGTH - 1));
 
-    SDL_SetRenderDrawColor(context->renderer, color_value, color_value,
+    SDL_SetRenderDrawColor(this->context->renderer, color_value, color_value,
                            color_value, SDL_ALPHA_OPAQUE);
 
     std::vector<SDL_FPoint> column_points;
-    column_points.reserve(context->points.size());
+    column_points.reserve(this->context->points.size());
 
-    for (size_t i = 0; i < context->points.size(); i++) {
-      column_points.push_back(context->points[i][j]);
+    for (size_t i = 0; i < this->context->points.size(); i++) {
+      // Check if the point trail is properly initialized
+      SDL_FPoint column_point = this->context->points[i][j];
+      column_points.push_back(column_point);
     }
 
-    SDL_RenderPoints(context->renderer, column_points.data(),
+    SDL_RenderPoints(this->context->renderer, column_points.data(),
                      column_points.size());
   }
 
   // Render UI text
   SDL_Color text_color = {255, 255, 255, 255};
-  graphics->renderText("SDL Animations with Fixed Timestep", 10, 10,
-                       text_color);
+  this->graphics->renderText("SDL Animations with Fixed Timestep", 10, 10,
+                             text_color);
 
   std::string fps_text = "FPS: " + std::to_string(static_cast<int>(fps));
-  graphics->renderText(fps_text, 10, 40, text_color);
+  this->graphics->renderText(fps_text, 10, 40, text_color);
 
   std::string tick_text =
       "Event Logic: " + std::to_string(static_cast<int>(getTickRate())) + " Hz";
-  graphics->renderText(tick_text, 10, 70, text_color);
+  this->graphics->renderText(tick_text, 10, 70, text_color);
 
-  std::string points_text = "Points: " + std::to_string(context->points.size());
-  graphics->renderText(points_text, 10, 100, text_color);
+  std::string points_text =
+      "Points: " + std::to_string(this->context->points.size());
+  this->graphics->renderText(points_text, 10, 100, text_color);
 
-  SDL_RenderPresent(context->renderer);
+  SDL_RenderPresent(this->context->renderer);
 }
 
 void EventLoop::updateFPS(float deltaTime) {

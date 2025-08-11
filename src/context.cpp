@@ -59,6 +59,13 @@ AppContext::AppContext()
 }
 
 AppContext::~AppContext() {
-  // Font is automatically cleaned up by RAII
-  TTF_Quit();
+  // Clean up SDL resources in reverse order of creation
+  if (renderer) {
+    SDL_DestroyRenderer(renderer);
+    renderer = nullptr;
+  }
+  if (window) {
+    SDL_DestroyWindow(window);
+    window = nullptr;
+  }
 }
