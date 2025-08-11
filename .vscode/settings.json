@@ -1,11 +1,26 @@
 {
-  "cmake.configureOnOpen": true,
+  "cmake.configureOnOpen": false,
+  "cmake.configureOnEdit": false,
+  "cmake.configureOnCommand": false,
+  "cmake.configureAfterCommand": false,
+
   "cmake.buildDirectory": "${workspaceFolder}/build",
   "cmake.generator": "Unix Makefiles",
+  "cmake.parallelJobs": 4,
+
+  "cmake.buildOnSave": false,
+  "cmake.buildOnSaveTarget": "",
+
+  "cmake.debugConfig": {
+    "stopAtEntry": false,
+    "cwd": "${workspaceFolder}"
+  },
+
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/lib/SDL/include",
-    "${workspaceFolder}/lib/SDL_ttf/include"
+    "${workspaceFolder}/lib/SDL_ttf/include",
+    "${workspaceFolder}/src"
   ],
   "C_Cpp.default.cppStandard": "c++20",
   "C_Cpp.default.cStandard": "c17",
