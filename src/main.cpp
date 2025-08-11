@@ -1,5 +1,5 @@
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_log.h>
+#include <spdlog/spdlog.h>
 
 #include <memory>
 
@@ -7,8 +7,10 @@
 #include "event_loop.h"
 
 int main() {
+  spdlog::set_pattern("[%D %H:%M:%S %z] [%^%l%$] %v");
+
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
+    SPDLOG_ERROR("Couldn't initialize SDL: %s", SDL_GetError());
     return 1;
   }
 
@@ -18,7 +20,7 @@ int main() {
   std::unique_ptr<EventLoop> event_loop = std::make_unique<EventLoop>();
   event_loop->setTargetFPS(TARGET_FRAME_RATE);
 
-  SDL_Log("Starting event loop...");
+  SPDLOG_INFO("Starting event loop...");
   event_loop->run();
 
   SDL_Quit();

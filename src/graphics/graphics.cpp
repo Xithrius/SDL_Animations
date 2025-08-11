@@ -1,9 +1,9 @@
 #include "graphics.h"
 
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_log.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
+#include <spdlog/spdlog.h>
 
 #include <cmath>
 #include <vector>
@@ -12,7 +12,7 @@
 #include "context.h"
 
 Graphics::Graphics(AppContext* context) : context(context) {
-  SDL_Log("Graphics constructor");
+  SPDLOG_INFO("Graphics constructor");
 
   this->context->points.resize(POINT_COUNT);
   for (int i = 0; i < POINT_COUNT; i++) {
@@ -64,21 +64,21 @@ void Graphics::renderText(const std::string& text, int x, int y,
                           SDL_Color color) {
   // Check if font is loaded
   if (!this->context->font.get()) {
-    SDL_Log("Font not loaded, skipping text rendering");
+    SPDLOG_WARN("Font not loaded, skipping text rendering");
     return;
   }
 
   SDL_Surface* text_surface = TTF_RenderText_Blended(
       this->context->font.get(), text.c_str(), text.length(), color);
   if (!text_surface) {
-    SDL_Log("Couldn't render text: %s", SDL_GetError());
+    SPDLOG_ERROR("Couldn't render text: %s", SDL_GetError());
     return;
   }
 
   SDL_Texture* text_texture =
       SDL_CreateTextureFromSurface(this->context->renderer, text_surface);
   if (!text_texture) {
-    SDL_Log("Couldn't create texture from surface: %s", SDL_GetError());
+    SPDLOG_ERROR("Couldn't create texture from surface: %s", SDL_GetError());
     SDL_DestroySurface(text_surface);
     return;
   }

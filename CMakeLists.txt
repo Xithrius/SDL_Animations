@@ -15,12 +15,14 @@ endif()
 # Add SDL3 and SDL_ttf submodules
 add_subdirectory(lib/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(lib/SDL_ttf EXCLUDE_FROM_ALL)
+add_subdirectory(lib/spdlog EXCLUDE_FROM_ALL)
 
 # Add include directories for your code and SDL headers
 include_directories(
     src
     lib/SDL/include
     lib/SDL_ttf/include
+    lib/spdlog/include
 )
 
 # Add your source files
@@ -42,4 +44,5 @@ target_link_libraries(
     PRIVATE
     SDL3::SDL3
     SDL3_ttf::SDL3_ttf
+    spdlog::spdlog
 )

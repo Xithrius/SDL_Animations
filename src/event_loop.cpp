@@ -1,6 +1,6 @@
 #include "event_loop.h"
 
-#include <SDL3/SDL_log.h>
+#include <spdlog/spdlog.h>
 
 #include "constants.h"
 
@@ -9,7 +9,7 @@ EventLoop::EventLoop() {
     context = std::make_unique<AppContext>();
     graphics = std::make_unique<Graphics>(context.get());
   } catch (const std::exception& e) {
-    SDL_Log("EventLoop construction failed: %s", e.what());
+    SPDLOG_ERROR("EventLoop construction failed: %s", e.what());
     throw;
   }
 }
@@ -28,7 +28,7 @@ void EventLoop::run() {
     // Cap delta time to prevent spiral of death
     if (deltaTime > 0.25f) {
       deltaTime = 0.25f;
-      SDL_Log("Large delta time detected: %f, capped to 0.25", deltaTime);
+      SPDLOG_WARN("Large delta time detected: %f, capped to 0.25", deltaTime);
     }
 
     // Handle events

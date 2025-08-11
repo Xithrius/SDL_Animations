@@ -5,6 +5,7 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <spdlog/spdlog.h>
 
 #include <memory>
 #include <string>
@@ -51,25 +52,25 @@ void FontRef::loadFont() {
     return;  // Already loaded
   }
 
-  SDL_Log("Loading embedded font");
+  SPDLOG_INFO("Loading embedded font");
   // Load font from embedded data using SDL_IOStream
   SDL_IOStream* io =
       SDL_IOFromConstMem(assets_fonts_SpaceMono_Regular_ttf,
                          sizeof(assets_fonts_SpaceMono_Regular_ttf));
   if (!io) {
-    SDL_Log("Failed to create IOStream for embedded font");
+    SPDLOG_ERROR("Failed to create IOStream for embedded font");
     throw std::runtime_error("Failed to create IOStream for embedded font");
   }
 
   TTF_Font* loaded_font = TTF_OpenFontIO(io, 1, DEFAULT_FONT_SIZE);
   if (!loaded_font) {
     SDL_CloseIO(io);
-    SDL_Log("Failed to load embedded font: %s", SDL_GetError());
+    SPDLOG_ERROR("Failed to load embedded font: %s", SDL_GetError());
     throw std::runtime_error("Failed to load embedded font: " +
                              std::string(SDL_GetError()));
   }
 
-  SDL_Log("Embedded font loaded successfully");
+  SPDLOG_INFO("Embedded font loaded successfully");
   font_ptr.reset(loaded_font);
 }
 
