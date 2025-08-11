@@ -16,12 +16,10 @@ class EventLoop {
   static constexpr float FIXED_TIMESTEP = 1.0f / 60.0f;
   float accumulator = 0.0f;
 
-  // Rendering can be variable rate
-  float targetFPS = 144.0f;  // Can be different from event logic rate
+  float targetFPS = 60.0f;
 
   bool running = true;
 
-  // Performance tracking
   float lastFrameTime = 0.0f;
   float fps = 0.0f;
   int frameCount = 0;
@@ -29,7 +27,7 @@ class EventLoop {
 
  public:
   EventLoop();
-  ~EventLoop();
+  ~EventLoop() = default;
 
   void run();
 

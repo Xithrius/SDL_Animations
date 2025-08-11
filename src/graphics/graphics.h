@@ -10,7 +10,7 @@ class Graphics {
 
  public:
   Graphics(AppContext* context);
-  ~Graphics();
+  ~Graphics() = default;
 
   void renderPoints(float deltaTime);
   void renderText(const std::string& text, int x, int y, SDL_Color color);

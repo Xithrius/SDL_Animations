@@ -24,46 +24,25 @@ AppContext::AppContext()
     throw std::runtime_error("Failed to create window/renderer");
   }
 
-  // Initialize SDL_ttf
   if (!TTF_Init()) {
     SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
     throw std::runtime_error("Failed to initialize SDL_ttf");
   }
 
-  // Load font after SDL_ttf is initialized
   font.loadFont();
 
-  // Log if frame rate was set from environment variable
   SDL_Log(
       "Target frame rate set from environment variable "
       "SDL_TARGET_FRAME_RATE=%f",
       TARGET_FRAME_RATE);
-
-  points.resize(POINT_COUNT);
-  for (int i = 0; i < POINT_COUNT; i++) {
-    point_speeds.push_back(SDL_randf() * MAX_POINT_SPEED + MIN_POINT_SPEED);
-
-    points[i].resize(TRAIL_LENGTH);
-
-    float initial_x = 0;
-    float initial_y = 0;
-
-    initial_x = SDL_randf() * WINDOW_WIDTH;
-    initial_y = SDL_randf() * WINDOW_HEIGHT;
-
-    for (int j = 0; j < TRAIL_LENGTH; j++) {
-      points[i][j].x = initial_x - j;
-      points[i][j].y = initial_y - j;
-    }
-  }
 }
 
 AppContext::~AppContext() {
-  // Clean up SDL resources in reverse order of creation
   if (renderer) {
     SDL_DestroyRenderer(renderer);
     renderer = nullptr;
   }
+
   if (window) {
     SDL_DestroyWindow(window);
     window = nullptr;

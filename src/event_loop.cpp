@@ -14,8 +14,6 @@ EventLoop::EventLoop() {
   }
 }
 
-EventLoop::~EventLoop() = default;
-
 /**
  * @brief Runs the event loop.
  */
@@ -113,8 +111,7 @@ void EventLoop::render() {
 
   // Render UI text
   SDL_Color text_color = {255, 255, 255, 255};
-  this->graphics->renderText("SDL Animations with Fixed Timestep", 10, 10,
-                             text_color);
+  this->graphics->renderText("SDL Animations", 10, 10, text_color);
 
   std::string fps_text = "FPS: " + std::to_string(static_cast<int>(fps));
   this->graphics->renderText(fps_text, 10, 40, text_color);

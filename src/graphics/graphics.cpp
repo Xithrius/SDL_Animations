@@ -8,11 +8,31 @@
 #include <cmath>
 #include <vector>
 
+#include "constants.h"
 #include "context.h"
 
-Graphics::Graphics(AppContext* context) : context(context) {}
+Graphics::Graphics(AppContext* context) : context(context) {
+  SDL_Log("Graphics constructor");
 
-Graphics::~Graphics() = default;
+  this->context->points.resize(POINT_COUNT);
+  for (int i = 0; i < POINT_COUNT; i++) {
+    this->context->point_speeds.push_back(SDL_randf() * MAX_POINT_SPEED +
+                                          MIN_POINT_SPEED);
+
+    this->context->points[i].resize(TRAIL_LENGTH);
+
+    float initial_x = 0;
+    float initial_y = 0;
+
+    initial_x = SDL_randf() * WINDOW_WIDTH;
+    initial_y = SDL_randf() * WINDOW_HEIGHT;
+
+    for (int j = 0; j < TRAIL_LENGTH; j++) {
+      this->context->points[i][j].x = initial_x - j;
+      this->context->points[i][j].y = initial_y - j;
+    }
+  }
+}
 
 void Graphics::renderPoints(float deltaTime) {
   int current_width, current_height;
