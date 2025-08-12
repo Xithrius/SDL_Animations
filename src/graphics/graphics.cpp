@@ -92,9 +92,14 @@ void Graphics::renderText(const std::string& text, int x, int y,
   SDL_DestroyTexture(text_texture);
 }
 
-void Graphics::render(float fps, float tickRate) {
+void Graphics::render(float tickRate) {
   SDL_RenderClear(this->context->renderer);
 
+  this->renderEntities();
+  this->renderUI(tickRate);
+}
+
+void Graphics::renderEntities() {
   for (int j = 0; j < TRAIL_LENGTH; j++) {
     // Calculate gradient: white (255) to black (0) based on trail position
     int color_value = 255 - (j * 255 / (TRAIL_LENGTH - 1));
@@ -114,40 +119,29 @@ void Graphics::render(float fps, float tickRate) {
     SDL_RenderPoints(this->context->renderer, column_points.data(),
                      column_points.size());
   }
-
-  SDL_Color text_color = {255, 255, 255, 255};
-  this->renderText("SDL Animations", 10, 10, text_color);
-
-  std::string fps_text = "FPS: " + std::to_string(static_cast<int>(fps));
-  this->renderText(fps_text, 10, 40, text_color);
-
-  std::string tick_text =
-      "Event Logic: " + std::to_string(static_cast<int>(tickRate)) + " Hz";
-  this->renderText(tick_text, 10, 70, text_color);
-
-  std::string points_text =
-      "Points: " + std::to_string(this->context->points.size());
-  this->renderText(points_text, 10, 100, text_color);
-
-  renderUI();
 }
 
-void Graphics::renderUI() {
+void Graphics::renderUI(float tickRate) {
   ImGui_ImplSDLRenderer3_NewFrame();
   ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
 
   {
-    ImGui::Begin("Settings");
+    if (this->show_debug) {
+      ImGui::Begin("Settings", &this->show_debug);
 
-    ImGui::SliderFloat("Point Speed Multiplier",
-                       &this->context->point_speed_multiplier, 0.0f, 10.0f);
-    ImGui::ColorEdit3("clear color", (float*)&clear_color);
+      ImGui::SliderFloat("Point Speed Multiplier",
+                         &this->context->point_speed_multiplier, 0.0f, 10.0f);
+      ImGui::ColorEdit3("clear color", (float*)&clear_color);
 
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                1000.0f / this->context->io->Framerate,
-                this->context->io->Framerate);
-    ImGui::End();
+      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                  1000.0f / this->context->io->Framerate,
+                  this->context->io->Framerate);
+
+      ImGui::Text("Event Logic: %d Hz", static_cast<int>(tickRate));
+
+      ImGui::End();
+    }
   }
 
   ImGui::Render();

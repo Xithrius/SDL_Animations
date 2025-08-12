@@ -39,11 +39,14 @@ void EventLoop::run() {
 
     this->updateFPS(deltaTime);
 
-    this->graphics->render(fps, getTickRate());
+    this->graphics->render(getTickRate());
 
     double elapsed = (double)(SDL_GetPerformanceCounter() - now) / freq;
     if (elapsed < targetFrameTime) {
-      SDL_Delay((Uint32)((targetFrameTime - elapsed) * 1000.0 + 0.5));
+      double sleepTime = targetFrameTime - elapsed;
+      if (sleepTime > 0.001) {  // Only sleep if we have more than 1ms to wait
+        SDL_Delay((Uint32)(sleepTime * 1000.0 + 0.5));
+      }
     }
   }
 }
@@ -59,6 +62,9 @@ void EventLoop::HandleInputEvents() {
     if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
         event.window.windowID == SDL_GetWindowID(this->context->window))
       this->running = false;
+    if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_F3) {
+      this->graphics->show_debug = !this->graphics->show_debug;
+    }
   }
 }
 

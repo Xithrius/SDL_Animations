@@ -40,7 +40,7 @@ class EventLoop {
   float getFPS() const { return fps; }
 
   // Get event logic tick rate
-  float getTickRate() const { return 1.0f / FIXED_TIMESTEP; }
+  float getTickRate() const { return 60.0f; }
 
  private:
   void HandleInputEvents();

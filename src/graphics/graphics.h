@@ -12,6 +12,8 @@ class Graphics {
   ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
  public:
+  bool show_debug = false;
+
   Graphics(AppContext* context);
   ~Graphics() = default;
 
@@ -20,7 +22,9 @@ class Graphics {
   void renderText(const std::string& text, int x, int y,
                   SDL_Color color = {255, 255, 255, 255});
 
-  void render(float fps, float tickRate);
+  void render(float tickRate);
 
-  void renderUI();
+  void renderEntities();
+
+  void renderUI(float tickRate);
 };
