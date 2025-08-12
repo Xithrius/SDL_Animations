@@ -128,6 +128,7 @@ void Graphics::renderUI(float tickRate) {
 
   {
     if (this->show_debug) {
+      ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
       ImGui::Begin("Settings", &this->show_debug);
 
       ImGui::SliderFloat("Point Speed Multiplier",
