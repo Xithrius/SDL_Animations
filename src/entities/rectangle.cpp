@@ -4,6 +4,8 @@
 
 RectangleEntity::RectangleEntity(const SDL_FRect& rect) : rect(rect) {}
 
+void RectangleEntity::update(float) {}
+
 void RectangleEntity::render(SDL_Renderer* renderer) {
   if (!visible) return;
 

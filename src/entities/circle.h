@@ -15,6 +15,8 @@ class CircleEntity : public Entity {
  public:
   CircleEntity(const SDL_FPoint& center, float radius);
 
+  void update(float) override;
+
   void render(SDL_Renderer* renderer) override;
 
   // Circle-specific methods

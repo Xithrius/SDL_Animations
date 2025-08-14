@@ -35,6 +35,7 @@ class PointEntity : public Entity {
               float speed = 100.0f);
 
   void update(float deltaTime) override;
+
   void render(SDL_Renderer* renderer) override;
 
   // Point-specific methods

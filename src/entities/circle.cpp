@@ -7,6 +7,8 @@
 CircleEntity::CircleEntity(const SDL_FPoint& center, float radius)
     : center(center), radius(radius) {}
 
+void CircleEntity::update(float) {}
+
 void CircleEntity::render(SDL_Renderer* renderer) {
   if (!visible) return;
 

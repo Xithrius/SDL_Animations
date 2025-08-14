@@ -14,6 +14,8 @@ class RectangleEntity : public Entity {
  public:
   RectangleEntity(const SDL_FRect& rect);
 
+  void update(float deltaTime) override;
+
   void render(SDL_Renderer* renderer) override;
 
   // Rectangle-specific methods

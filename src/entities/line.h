@@ -27,6 +27,8 @@ class LineEntity : public Entity {
  public:
   LineEntity(const SDL_FPoint& start, const SDL_FPoint& end);
 
+  void update(float deltaTime) override;
+
   void render(SDL_Renderer* renderer) override;
 
   // Line-specific methods

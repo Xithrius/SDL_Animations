@@ -18,7 +18,7 @@ class Entity {
   virtual ~Entity() = default;
 
   // Core entity methods
-  virtual void update(float) {}
+  virtual void update(float deltaTime) = 0;
 
   virtual void render(SDL_Renderer* renderer) = 0;
 
