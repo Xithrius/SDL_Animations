@@ -4,10 +4,10 @@
 
 #include <cmath>
 
-#include "context.h"
+#include "core/app_state.h"
 
-PointEntity::PointEntity(AppContext* context, size_t trailLength, float speed)
-    : context(context), trailLength(trailLength), speed(speed) {
+PointEntity::PointEntity(AppState* appState, size_t trailLength, float speed)
+    : appState(appState), trailLength(trailLength), speed(speed) {
   trail.resize(trailLength);
   // Initialize trail with current position
   for (size_t i = 0; i < trailLength; ++i) {
@@ -19,7 +19,7 @@ void PointEntity::update(float deltaTime) {
   if (!active) return;
 
   int windowWidth, windowHeight;
-  SDL_GetWindowSize(context->window, &windowWidth, &windowHeight);
+  SDL_GetWindowSize(appState->context->window, &windowWidth, &windowHeight);
 
   // Calculate new position
   double currentSpeed = static_cast<double>(speed) * speedMultiplier;

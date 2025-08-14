@@ -4,9 +4,9 @@
 
 #include <algorithm>
 
-#include "context.h"
+#include "core/app_state.h"
 
-EntityManager::EntityManager(AppContext* context) : context(context) {}
+EntityManager::EntityManager(AppState* appState) : appState(appState) {}
 
 void EntityManager::removeEntity(Entity* entity) {
   entitiesToRemove.push_back(entity);

@@ -4,13 +4,15 @@
 
 #include <memory>
 
-#include "context.h"
-#include "graphics/graphics.h"
+#include "core/app_state.h"
+#include "core/context.h"
+#include "ui/ui.h"
 
 class EventLoop {
  private:
-  std::unique_ptr<AppContext> context;
-  std::unique_ptr<Graphics> graphics;
+  std::unique_ptr<Context> context;
+  std::unique_ptr<AppState> appState;
+  std::unique_ptr<UI> ui;
 
   // Fixed timestep for event logic (60 Hz)
   static constexpr float FIXED_TIMESTEP = 1.0f / 60.0f;
@@ -38,9 +40,6 @@ class EventLoop {
 
   // Get current FPS
   float getFPS() const { return fps; }
-
-  // Get event logic tick rate
-  float getTickRate() const { return 60.0f; }
 
  private:
   void HandleInputEvents();

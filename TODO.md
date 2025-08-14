@@ -1,8 +1,9 @@
 # TODO
 
-- [ ] Logging with levels and timestamps
-- [ ] Correct framerate locking to 60 FPS instead of 62.5
-- [ ] Toggle debug info with F3
+- [x] Logging with levels and timestamps
+- [x] Correct framerate locking to 60 FPS instead of 62.5
+- [x] Toggle debug info with F3
+- [ ] Organize file structure such that it's more clear where specific components should be built
 
 ## Very difficult things
 

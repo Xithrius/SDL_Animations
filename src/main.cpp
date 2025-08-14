@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "constants.h"
+#include "core/constants.h"
 #include "event_loop.h"
 
 int main() {

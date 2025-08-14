@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-class AppContext;
+class AppState;
 
 class Entity {
  protected:
@@ -19,6 +19,7 @@ class Entity {
 
   // Core entity methods
   virtual void update(float) {}
+
   virtual void render(SDL_Renderer* renderer) = 0;
 
   // Entity state
@@ -40,10 +41,10 @@ class EntityManager {
  private:
   std::vector<std::unique_ptr<Entity>> entities;
   std::vector<Entity*> entitiesToRemove;
-  AppContext* context;
+  AppState* appState;
 
  public:
-  explicit EntityManager(AppContext* context);
+  explicit EntityManager(AppState* appState);
 
   // Entity management
   template <typename T, typename... Args>

@@ -29,15 +29,18 @@ include_directories(
 # Add your source files
 set(SOURCES
     src/main.cpp
-    src/context.cpp
+    src/core/context.cpp
+    src/core/app_state.cpp
     src/event_loop.cpp
     src/entities/entity.cpp
     src/entities/circle.cpp
     src/entities/line.cpp
     src/entities/point.cpp
     src/entities/rectangle.cpp
-    src/graphics/graphics.cpp
+    src/graphics/renderer.cpp
     src/graphics/fonts.cpp
+    src/ui/ui.cpp
+    src/ui/debug.cpp
     src/graphics/embedded_fonts/space_mono_regular.h
     # ImGui core files
     lib/imgui/imgui.cpp

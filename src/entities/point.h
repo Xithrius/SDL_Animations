@@ -6,6 +6,9 @@
 
 #include "entity.h"
 
+// Forward declaration
+class AppState;
+
 // Point entity with trail support
 class PointEntity : public Entity {
  public:
@@ -19,7 +22,7 @@ class PointEntity : public Entity {
   };
 
  private:
-  AppContext* context;
+  AppState* appState;
   std::vector<SDL_FPoint> trail;
   size_t trailLength;
   float speed;
@@ -28,7 +31,7 @@ class PointEntity : public Entity {
   TrailProperties trailProps;
 
  public:
-  PointEntity(AppContext* context, size_t trailLength = 10,
+  PointEntity(AppState* appState, size_t trailLength = 10,
               float speed = 100.0f);
 
   void update(float deltaTime) override;

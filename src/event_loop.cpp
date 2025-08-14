@@ -6,8 +6,9 @@
 
 EventLoop::EventLoop() {
   try {
-    this->context = std::make_unique<AppContext>();
-    this->graphics = std::make_unique<Graphics>(this->context.get());
+    this->context = std::make_unique<Context>();
+    this->appState = std::make_unique<AppState>(this->context.get());
+    this->ui = std::make_unique<UI>(this->appState.get());
   } catch (const std::exception& e) {
     SPDLOG_ERROR("EventLoop construction failed: %s", e.what());
     throw;
@@ -39,7 +40,7 @@ void EventLoop::run() {
 
     this->updateFPS(deltaTime);
 
-    this->graphics->render(getTickRate());
+    this->ui->render();
 
     double elapsed = (double)(SDL_GetPerformanceCounter() - now) / freq;
     if (elapsed < targetFrameTime) {
@@ -63,7 +64,7 @@ void EventLoop::HandleInputEvents() {
         event.window.windowID == SDL_GetWindowID(this->context->window))
       this->running = false;
     if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_F3) {
-      this->graphics->show_debug = !this->graphics->show_debug;
+      this->ui->debug.toggle();
     }
   }
 }
@@ -74,7 +75,7 @@ void EventLoop::HandleInputEvents() {
  * @param deltaTime The time since the last update.
  */
 void EventLoop::updateEvents(float deltaTime) {
-  this->context->entityManager.update(deltaTime);
+  this->appState->entityManager.update(deltaTime);
 }
 
 void EventLoop::updateFPS(float deltaTime) {

@@ -1,20 +1,17 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_rect.h>
-#include <SDL3/SDL_render.h>
-#include <SDL3_ttf/SDL_ttf.h>
 
 #include <vector>
 
+#include "context.h"
 #include "entities/entity.h"
 #include "graphics/fonts.h"
 #include "imgui.h"
 
-class AppContext {
+class AppState {
  public:
-  SDL_Window* window;
-  SDL_Renderer* renderer;
+  Context* context;
   FontRef font;
 
   std::vector<std::vector<SDL_FPoint>> points;
@@ -24,9 +21,8 @@ class AppContext {
   float target_frame_rate;
   ImGuiIO* io;
 
-  // Entity system
   EntityManager entityManager;
 
-  AppContext();
-  ~AppContext();
+  AppState(Context* context);
+  ~AppState();
 };
