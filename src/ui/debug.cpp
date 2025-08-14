@@ -1,9 +1,51 @@
 #include "debug.h"
 
-#include "core/constants.h"
 #include "entities/circle.h"
 #include "entities/line.h"
-#include "ui/ui.h"
+#include "imgui.h"
+
+void DebugUI::debugOptions() {
+  ImGui::Checkbox("Debug Frames", &this->debugFrames);
+  if (this->debugFrames) {
+  }
+
+  // Line rotation controls
+  ImGui::Separator();
+  ImGui::Text("Line Rotation Controls:");
+
+  static float rotationSpeed = 1.0f;
+  if (ImGui::SliderFloat("Rotation Speed", &rotationSpeed, 0.0f, 5.0f)) {
+    // Update rotation speed for all line entities
+    auto lines = getAppState()->entityManager.getEntitiesOfType<LineEntity>();
+    for (auto* line : lines) {
+      line->setRotationSpeed(rotationSpeed);
+    }
+  }
+
+  if (ImGui::Button("Create Spinning Line")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    // Create a line at the center of the screen
+    SDL_FPoint center = {static_cast<float>(windowWidth) / 2.0f,
+                         static_cast<float>(windowHeight) / 2.0f};
+    SDL_FPoint start = {center.x - 50.0f, center.y};
+    SDL_FPoint end = {center.x + 50.0f, center.y};
+
+    auto* line =
+        getAppState()->entityManager.createEntity<LineEntity>(start, end);
+    line->setRotationSpeed(rotationSpeed);
+    line->setThickness(3.0f);
+
+    // Set gradient properties for visual appeal
+    LineEntity::GradientProperties gradientProps;
+    gradientProps.enabled = true;
+    gradientProps.startColor = {255, 0, 0, 255};  // Red
+    gradientProps.endColor = {0, 0, 255, 255};    // Blue
+    line->setGradientProperties(gradientProps);
+  }
+}
 
 void DebugUI::render() {
   if (!this->visible) return;
@@ -11,27 +53,14 @@ void DebugUI::render() {
   ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
   ImGui::Begin("Settings", &this->visible);
 
-  ImGui::SliderFloat("Point Speed Multiplier",
-                     &getAppState()->point_speed_multiplier, 0.0f, 10.0f);
-  ImGui::ColorEdit3("clear color", (float*)&CLEAR_COLOR);
+  this->debugOptions();
 
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
               1000.0f / getAppState()->io->Framerate,
               getAppState()->io->Framerate);
 
-  ImGui::Text("Event Logic: %d Hz", static_cast<int>(TICK_RATE));
-
   ImGui::Separator();
   ImGui::Text("Entity System:");
-
-  static bool newEntitySystemDemo = false;
-  if (ImGui::Checkbox("New entity system demo", &newEntitySystemDemo)) {
-    if (newEntitySystemDemo) {
-      getUI()->createDemoEntities();
-    } else {
-      getAppState()->entityManager.clear();
-    }
-  }
 
   ImGui::Text("Entity Count: %zu",
               getAppState()->entityManager.getEntityCount());

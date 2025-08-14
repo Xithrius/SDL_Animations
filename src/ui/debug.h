@@ -11,6 +11,10 @@
 class DebugUI : public UIComponent {
  private:
   bool visible = false;
+  bool entitySystemDemo = false;
+  bool debugFrames = false;
+
+  void debugOptions();
 
  public:
   DebugUI(AppState* appState, UI* ui) : UIComponent(appState, ui) {}
@@ -20,4 +24,6 @@ class DebugUI : public UIComponent {
   void toggle() { visible = !visible; }
 
   bool isVisible() const { return visible; }
+
+  bool isDebugFramesEnabled() const { return debugFrames; }
 };

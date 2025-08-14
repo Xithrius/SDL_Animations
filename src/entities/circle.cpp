@@ -41,3 +41,8 @@ void CircleEntity::render(SDL_Renderer* renderer) {
     }
   }
 }
+
+BoundingBox CircleEntity::getBoundingBox() const {
+  return BoundingBox(center.x - radius, center.y - radius, center.x + radius,
+                     center.y + radius);
+}

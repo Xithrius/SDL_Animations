@@ -19,6 +19,9 @@ class CircleEntity : public Entity {
 
   void render(SDL_Renderer* renderer) override;
 
+  // Debug methods
+  BoundingBox getBoundingBox() const override;
+
   // Circle-specific methods
   void setCenter(const SDL_FPoint& center) { this->center = center; }
 

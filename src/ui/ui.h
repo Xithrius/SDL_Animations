@@ -24,4 +24,6 @@ class UI {
   void render();
 
   void createDemoEntities();
+
+  void renderDebugFrames();
 };

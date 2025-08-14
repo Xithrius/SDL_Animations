@@ -71,3 +71,14 @@ std::vector<Entity*> EntityManager::getEntitiesByType(
   }
   return result;
 }
+
+std::vector<Entity*> EntityManager::getAllEntities() {
+  std::vector<Entity*> result;
+  result.reserve(entities.size());
+
+  for (auto& entity : entities) {
+    result.push_back(entity.get());
+  }
+
+  return result;
+}

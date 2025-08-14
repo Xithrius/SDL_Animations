@@ -7,6 +7,14 @@
 
 class AppState;
 
+// Structure to hold bounding box information
+struct BoundingBox {
+  float minX, minY, maxX, maxY;
+
+  BoundingBox(float minX, float minY, float maxX, float maxY)
+      : minX(minX), minY(minY), maxX(maxX), maxY(maxY) {}
+};
+
 class Entity {
  protected:
   bool visible = true;
@@ -34,6 +42,9 @@ class Entity {
   bool isActive() const { return active; }
 
   float getZOrder() const { return z_order; }
+
+  // Debug methods
+  virtual BoundingBox getBoundingBox() const = 0;
 };
 
 // Entity manager for handling multiple entities
@@ -64,6 +75,7 @@ class EntityManager {
 
   // Entity queries
   std::vector<Entity*> getEntitiesByType(const std::type_info& type);
+  std::vector<Entity*> getAllEntities();
 
   template <typename T>
   std::vector<T*> getEntitiesOfType() {

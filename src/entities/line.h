@@ -24,12 +24,21 @@ class LineEntity : public Entity {
 
   GradientProperties gradientProps;
 
+  // Rotation properties
+  SDL_FPoint origin;           // Center point to rotate around
+  float angle = 0.0f;          // Current rotation angle in radians
+  float rotationSpeed = 1.0f;  // Rotation speed in radians per second
+  float lineLength = 0.0f;     // Length of the line for rotation calculations
+
  public:
   LineEntity(const SDL_FPoint& start, const SDL_FPoint& end);
 
   void update(float deltaTime) override;
 
   void render(SDL_Renderer* renderer) override;
+
+  // Debug methods
+  BoundingBox getBoundingBox() const override;
 
   // Line-specific methods
   void setStart(const SDL_FPoint& start) { this->start = start; }
@@ -44,7 +53,20 @@ class LineEntity : public Entity {
     gradientProps = props;
   }
 
+  // Rotation methods
+  void setOrigin(const SDL_FPoint& origin) { this->origin = origin; }
+
+  void setRotationSpeed(float speed) { rotationSpeed = speed; }
+
+  void setAngle(float angle) { this->angle = angle; }
+
   SDL_FPoint getStart() const { return start; }
 
   SDL_FPoint getEnd() const { return end; }
+
+  SDL_FPoint getOrigin() const { return origin; }
+
+  float getAngle() const { return angle; }
+
+  float getRotationSpeed() const { return rotationSpeed; }
 };

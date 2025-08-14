@@ -25,12 +25,38 @@ void UI::render() {
   // Render entities
   this->appState->entityManager.render(this->appState->context->renderer);
 
+  // Render debug frames if enabled
+  if (this->debug.isDebugFramesEnabled()) {
+    this->renderDebugFrames();
+  }
+
   // Render ImGui
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(),
                                         this->appState->context->renderer);
 
   SDL_RenderPresent(this->appState->context->renderer);
+}
+
+void UI::renderDebugFrames() {
+  // Set green color for debug frames
+  SDL_SetRenderDrawColor(this->appState->context->renderer, 0, 255, 0, 255);
+
+  // Get all entities and draw debug frames around them
+  auto entities = this->appState->entityManager.getAllEntities();
+
+  for (auto* entity : entities) {
+    if (entity->isVisible()) {
+      BoundingBox bbox = entity->getBoundingBox();
+
+      // Draw rectangle from minX,minY to maxX,maxY
+      SDL_FRect debugRect = {bbox.minX, bbox.minY, bbox.maxX - bbox.minX,
+                             bbox.maxY - bbox.minY};
+
+      // Draw the debug frame rectangle
+      SDL_RenderRect(this->appState->context->renderer, &debugRect);
+    }
+  }
 }
 
 void UI::createDemoEntities() {

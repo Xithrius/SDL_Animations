@@ -2,10 +2,43 @@
 
 #include <spdlog/spdlog.h>
 
-LineEntity::LineEntity(const SDL_FPoint& start, const SDL_FPoint& end)
-    : start(start), end(end) {}
+#include <algorithm>
+#include <cmath>
 
-void LineEntity::update(float) {}
+LineEntity::LineEntity(const SDL_FPoint& start, const SDL_FPoint& end)
+    : start(start), end(end) {
+  // Calculate the origin (center point) of the line
+  origin.x = (start.x + end.x) / 2.0f;
+  origin.y = (start.y + end.y) / 2.0f;
+
+  // Calculate the length of the line
+  float dx = end.x - start.x;
+  float dy = end.y - start.y;
+  lineLength = sqrtf(dx * dx + dy * dy);
+}
+
+void LineEntity::update(float deltaTime) {
+  // Update rotation angle
+  angle += rotationSpeed * deltaTime;
+
+  // Keep angle in reasonable range (optional)
+  if (angle > 2.0f * M_PI) {
+    angle -= 2.0f * M_PI;
+  }
+
+  // Calculate new start and end points based on rotation
+  float halfLength = lineLength / 2.0f;
+
+  // Calculate the direction vector of the line
+  float directionX = cosf(angle);
+  float directionY = sinf(angle);
+
+  // Update start and end points
+  start.x = origin.x - directionX * halfLength;
+  start.y = origin.y - directionY * halfLength;
+  end.x = origin.x + directionX * halfLength;
+  end.y = origin.y + directionY * halfLength;
+}
 
 void LineEntity::render(SDL_Renderer* renderer) {
   if (!visible) return;
@@ -48,4 +81,14 @@ void LineEntity::render(SDL_Renderer* renderer) {
 
     SDL_RenderLine(renderer, segStart.x, segStart.y, segEnd.x, segEnd.y);
   }
+}
+
+BoundingBox LineEntity::getBoundingBox() const {
+  float halfLength = lineLength / 2.0f;
+  float halfThickness = thickness / 2.0f;
+
+  float maxExtent = halfLength + halfThickness;
+
+  return BoundingBox(origin.x - maxExtent, origin.y - maxExtent,
+                     origin.x + maxExtent, origin.y + maxExtent);
 }
