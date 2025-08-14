@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "entities/entity.h"
 #include "graphics/fonts.h"
 #include "imgui.h"
 
@@ -22,6 +23,9 @@ class AppContext {
 
   float target_frame_rate;
   ImGuiIO* io;
+
+  // Entity system
+  EntityManager entityManager;
 
   AppContext();
   ~AppContext();

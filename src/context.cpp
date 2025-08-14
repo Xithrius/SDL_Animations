@@ -20,7 +20,8 @@ AppContext::AppContext()
       renderer(nullptr),
       font(),
       target_frame_rate(TARGET_FRAME_RATE),
-      io(nullptr) {
+      io(nullptr),
+      entityManager(this) {
   if (!SDL_CreateWindowAndRenderer(APPLICATION_TITLE.c_str(), WINDOW_WIDTH,
                                    WINDOW_HEIGHT, WINDOW_FLAGS, &window,
                                    &renderer)) {

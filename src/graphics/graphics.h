@@ -17,7 +17,6 @@ class Graphics {
   Graphics(AppContext* context);
   ~Graphics() = default;
 
-  void updatePoints(float deltaTime);
 
   void renderText(const std::string& text, int x, int y,
                   SDL_Color color = {255, 255, 255, 255});
@@ -27,4 +26,8 @@ class Graphics {
   void renderEntities();
 
   void renderUI(float tickRate);
+
+  // Entity management helpers
+  void createDemoEntities();
+  void clearEntities();
 };

@@ -5,13 +5,14 @@
 #include <SDL3/SDL_render.h>
 #include <spdlog/spdlog.h>
 
-#include <cmath>
-#include <vector>
-
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlrenderer3.h"
 #include "constants.h"
 #include "context.h"
+#include "entities/circle.h"
+#include "entities/entity.h"
+#include "entities/line.h"
+#include "entities/point.h"
 
 Graphics::Graphics(AppContext* context) : context(context) {
   this->context->points.resize(POINT_COUNT);
@@ -30,33 +31,6 @@ Graphics::Graphics(AppContext* context) : context(context) {
     for (int j = 0; j < TRAIL_LENGTH; j++) {
       this->context->points[i][j].x = initial_x - j;
       this->context->points[i][j].y = initial_y - j;
-    }
-  }
-}
-
-void Graphics::updatePoints(float deltaTime) {
-  int current_width, current_height;
-  SDL_GetWindowSize(context->window, &current_width, &current_height);
-
-  for (size_t i = 0; i < context->points.size(); i++) {
-    auto& points = context->points[i];
-    double speed = static_cast<double>(context->point_speeds[i]) *
-                   context->point_speed_multiplier;
-
-    for (size_t j = 0; j < points.size(); j++) {
-      // Use double precision for calculations to avoid floating-point drift
-      double newX = static_cast<double>(points[j].x) +
-                    speed * static_cast<double>(deltaTime);
-      double newY = static_cast<double>(points[j].y) +
-                    speed * static_cast<double>(deltaTime);
-
-      // Use modulo for wrapping to maintain precision
-      newX = fmod(newX, static_cast<double>(current_width));
-      newY = fmod(newY, static_cast<double>(current_height));
-
-      // Convert back to float for rendering
-      points[j].x = static_cast<float>(newX);
-      points[j].y = static_cast<float>(newY);
     }
   }
 }
@@ -100,25 +74,8 @@ void Graphics::render(float tickRate) {
 }
 
 void Graphics::renderEntities() {
-  for (int j = 0; j < TRAIL_LENGTH; j++) {
-    // Calculate gradient: white (255) to black (0) based on trail position
-    int color_value = 255 - (j * 255 / (TRAIL_LENGTH - 1));
-
-    SDL_SetRenderDrawColor(this->context->renderer, color_value, color_value,
-                           color_value, SDL_ALPHA_OPAQUE);
-
-    std::vector<SDL_FPoint> column_points;
-    column_points.reserve(this->context->points.size());
-
-    for (size_t i = 0; i < this->context->points.size(); i++) {
-      // Check if the point trail is properly initialized
-      SDL_FPoint column_point = this->context->points[i][j];
-      column_points.push_back(column_point);
-    }
-
-    SDL_RenderPoints(this->context->renderer, column_points.data(),
-                     column_points.size());
-  }
+  // Use the new entity manager to render all entities
+  this->context->entityManager.render(this->context->renderer);
 }
 
 void Graphics::renderUI(float tickRate) {
@@ -141,6 +98,58 @@ void Graphics::renderUI(float tickRate) {
 
       ImGui::Text("Event Logic: %d Hz", static_cast<int>(tickRate));
 
+      // Entity system controls
+      ImGui::Separator();
+      ImGui::Text("Entity System:");
+
+      static bool newEntitySystemDemo = false;
+      if (ImGui::Checkbox("New entity system demo", &newEntitySystemDemo)) {
+        if (newEntitySystemDemo) {
+          this->createDemoEntities();
+        } else {
+          this->clearEntities();
+        }
+      }
+
+      ImGui::Text("Entity Count: %zu",
+                  this->context->entityManager.getEntityCount());
+
+      if (ImGui::Button("Add Random Line")) {
+        int windowWidth, windowHeight;
+        SDL_GetWindowSize(this->context->window, &windowWidth, &windowHeight);
+
+        auto* line = this->context->entityManager.createEntity<LineEntity>(
+            SDL_FPoint{SDL_randf() * windowWidth, SDL_randf() * windowHeight},
+            SDL_FPoint{SDL_randf() * windowWidth, SDL_randf() * windowHeight});
+
+        LineEntity::GradientProperties gradientProps;
+        gradientProps.enabled = true;
+        gradientProps.startColor = {static_cast<Uint8>(SDL_randf() * 255),
+                                    static_cast<Uint8>(SDL_randf() * 255),
+                                    static_cast<Uint8>(SDL_randf() * 255), 255};
+        gradientProps.endColor = {static_cast<Uint8>(SDL_randf() * 255),
+                                  static_cast<Uint8>(SDL_randf() * 255),
+                                  static_cast<Uint8>(SDL_randf() * 255), 255};
+        line->setGradientProperties(gradientProps);
+      }
+
+      if (ImGui::Button("Add Random Circle")) {
+        int windowWidth, windowHeight;
+        SDL_GetWindowSize(this->context->window, &windowWidth, &windowHeight);
+
+        auto* circle = this->context->entityManager.createEntity<CircleEntity>(
+            SDL_FPoint{SDL_randf() * windowWidth, SDL_randf() * windowHeight},
+            SDL_randf() * 50.0f + 10.0f);
+        circle->setColor({static_cast<Uint8>(SDL_randf() * 255),
+                          static_cast<Uint8>(SDL_randf() * 255),
+                          static_cast<Uint8>(SDL_randf() * 255), 128});
+        circle->setFilled(SDL_randf() > 0.5f);
+      }
+
+      if (ImGui::Button("Clear All Entities")) {
+        this->clearEntities();
+      }
+
       ImGui::End();
     }
   }
@@ -156,3 +165,46 @@ void Graphics::renderUI(float tickRate) {
 
   SDL_RenderPresent(this->context->renderer);
 }
+
+void Graphics::createDemoEntities() {
+  // Create some demo entities to show the new system
+  int windowWidth, windowHeight;
+  SDL_GetWindowSize(this->context->window, &windowWidth, &windowHeight);
+
+  // Create animated points with trails
+  for (int i = 0; i < POINT_COUNT; ++i) {
+    auto* point = this->context->entityManager.createEntity<PointEntity>(
+        this->context, TRAIL_LENGTH,
+        SDL_randf() * MAX_POINT_SPEED + MIN_POINT_SPEED);
+
+    // Set initial position
+    float x = SDL_randf() * windowWidth;
+    float y = SDL_randf() * windowHeight;
+    point->setInitialPosition(x, y);
+
+    // Configure trail properties
+    PointEntity::TrailProperties trailProps;
+    trailProps.enabled = true;
+    trailProps.startColor = {255, 255, 255, 255};
+    trailProps.endColor = {0, 0, 0, 0};
+    point->setTrailProperties(trailProps);
+  }
+
+  // Create some gradient lines
+  auto* line1 = this->context->entityManager.createEntity<LineEntity>(
+      SDL_FPoint{100, 100}, SDL_FPoint{300, 200});
+  LineEntity::GradientProperties gradientProps;
+  gradientProps.enabled = true;
+  gradientProps.startColor = {255, 0, 0, 255};  // Red
+  gradientProps.endColor = {0, 0, 255, 255};    // Blue
+  line1->setGradientProperties(gradientProps);
+
+  // Create a circle
+  auto* circle = this->context->entityManager.createEntity<CircleEntity>(
+      SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f}, 50.0f);
+  circle->setColor({0, 255, 0, 128});  // Semi-transparent green
+  circle->setFilled(false);
+  circle->setZOrder(1.0f);  // Render on top
+}
+
+void Graphics::clearEntities() { this->context->entityManager.clear(); }

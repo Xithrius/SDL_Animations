@@ -74,7 +74,7 @@ void EventLoop::HandleInputEvents() {
  * @param deltaTime The time since the last update.
  */
 void EventLoop::updateEvents(float deltaTime) {
-  this->graphics->updatePoints(deltaTime);
+  this->context->entityManager.update(deltaTime);
 }
 
 void EventLoop::updateFPS(float deltaTime) {
