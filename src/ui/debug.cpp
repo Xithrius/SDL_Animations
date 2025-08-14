@@ -2,11 +2,44 @@
 
 #include "entities/circle.h"
 #include "entities/line.h"
+#include "event_loop.h"
 #include "imgui.h"
+#include "ui/ui.h"
 
 void DebugUI::debugOptions() {
   ImGui::Checkbox("Debug Frames", &this->debugFrames);
   if (this->debugFrames) {
+  }
+
+  ImGui::Separator();
+  ImGui::Text("Framerate Controls:");
+
+  float targetFPS = getUI()->getEventLoop()->getTargetFPS();
+
+  if (ImGui::SliderFloat("Target FPS", &targetFPS, 0.0f, 240.0f, "%.0f")) {
+    getUI()->getEventLoop()->setTargetFPS(targetFPS);
+  }
+
+  ImGui::Text("Current FPS: %.1f", this->getAppState()->io->Framerate);
+
+  if (ImGui::Button("30 FPS")) {
+    targetFPS = 30.0f;
+    getUI()->getEventLoop()->setTargetFPS(targetFPS);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("60 FPS")) {
+    targetFPS = 60.0f;
+    getUI()->getEventLoop()->setTargetFPS(targetFPS);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("120 FPS")) {
+    targetFPS = 120.0f;
+    getUI()->getEventLoop()->setTargetFPS(targetFPS);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Unlimited")) {
+    targetFPS = 0.0f;
+    getUI()->getEventLoop()->setTargetFPS(targetFPS);
   }
 
   // Line rotation controls

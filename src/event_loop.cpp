@@ -8,7 +8,7 @@ EventLoop::EventLoop() {
   try {
     this->context = std::make_unique<Context>();
     this->appState = std::make_unique<AppState>(this->context.get());
-    this->ui = std::make_unique<UI>(this->appState.get());
+    this->ui = std::make_unique<UI>(this->appState.get(), this);
   } catch (const std::exception& e) {
     SPDLOG_ERROR("EventLoop construction failed: %s", e.what());
     throw;
@@ -23,7 +23,6 @@ void EventLoop::run() {
 
   Uint64 freq = SDL_GetPerformanceFrequency();
   Uint64 last = SDL_GetPerformanceCounter();
-  double targetFrameTime = 1.0 / this->targetFPS;
 
   while (this->running) {
     Uint64 now = SDL_GetPerformanceCounter();
@@ -42,11 +41,17 @@ void EventLoop::run() {
 
     this->ui->render();
 
-    double elapsed = (double)(SDL_GetPerformanceCounter() - now) / freq;
-    if (elapsed < targetFrameTime) {
-      double sleepTime = targetFrameTime - elapsed;
-      if (sleepTime > 0.001) {  // Only sleep if we have more than 1ms to wait
-        SDL_Delay((Uint32)(sleepTime * 1000.0 + 0.5));
+    // Calculate target frame time each frame to respond to FPS changes
+    double targetFrameTime =
+        (this->targetFPS > 0.0f) ? (1.0 / this->targetFPS) : 0.0;
+
+    if (targetFrameTime > 0.0) {
+      double elapsed = (double)(SDL_GetPerformanceCounter() - now) / freq;
+      if (elapsed < targetFrameTime) {
+        double sleepTime = targetFrameTime - elapsed;
+        if (sleepTime > 0.001) {  // Only sleep if we have more than 1ms to wait
+          SDL_Delay((Uint32)(sleepTime * 1000.0 + 0.5));
+        }
       }
     }
   }

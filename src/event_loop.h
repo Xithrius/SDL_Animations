@@ -38,6 +38,9 @@ class EventLoop {
   // Set target rendering FPS (0 = unlimited)
   void setTargetFPS(float fps) { targetFPS = fps; }
 
+  // Get target FPS
+  float getTargetFPS() const { return targetFPS; }
+
   // Get current FPS
   float getFPS() const { return fps; }
 
