@@ -37,11 +37,14 @@ set(SOURCES
     src/entities/line.cpp
     src/entities/point.cpp
     src/entities/rectangle.cpp
+    src/entities/text.cpp
     src/graphics/renderer.cpp
     src/graphics/fonts.cpp
     src/ui/ui.cpp
     src/ui/debug.cpp
     src/graphics/embedded_fonts/space_mono_regular.h
+    src/utils/uuid.cpp
+
     # ImGui core files
     lib/imgui/imgui.cpp
     lib/imgui/imgui_demo.cpp

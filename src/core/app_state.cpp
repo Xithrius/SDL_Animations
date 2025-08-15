@@ -9,6 +9,12 @@
 AppState::AppState(Context* context) : context(context), entityManager(this) {
   font.loadFont();
 
+  // Set up the renderer with the loaded font
+  renderer.setRenderer(context->renderer);
+  renderer.setFont(std::shared_ptr<TTF_Font>(
+      font.get(),
+      [](TTF_Font*) { /* Custom deleter to avoid double deletion */ }));
+
   spdlog::info("Target frame rate set to {}", TARGET_FRAME_RATE);
 
   SDL_SetWindowPosition(context->window, SDL_WINDOWPOS_CENTERED,

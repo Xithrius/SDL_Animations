@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 
 #include "core/app_state.h"
+#include "entities/entity.h"
 #include "ui/debug.h"
 
 // Forward declaration to avoid circular dependency
@@ -28,9 +29,11 @@ class UI {
 
   void render();
 
-  void createDemoEntities();
-
   void renderDebugFrames();
+
+  std::vector<std::string> getDebugText(Entity* entity);
+
+  void renderDebugInfo(Entity* entity);
 
   EventLoop* getEventLoop() const { return eventLoop; }
 };

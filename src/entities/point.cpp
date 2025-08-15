@@ -1,7 +1,5 @@
 #include "point.h"
 
-#include <spdlog/spdlog.h>
-
 #include <cmath>
 
 #include "core/app_state.h"

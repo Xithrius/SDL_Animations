@@ -3,11 +3,13 @@
 #include <SDL3/SDL.h>
 
 #include <memory>
+#include <string>
 #include <vector>
+
+#include "utils/uuid.h"
 
 class AppState;
 
-// Structure to hold bounding box information
 struct BoundingBox {
   float minX, minY, maxX, maxY;
 
@@ -20,9 +22,15 @@ class Entity {
   bool visible = true;
   bool active = true;
   float z_order = 0.0f;
+  std::string uuid;
+  AppState* appState = nullptr;
+
+  // Protected method to access AppState (set by EntityManager)
+  void setAppState(AppState* appState) { this->appState = appState; }
 
  public:
-  Entity() = default;
+  Entity() : uuid(generateUUID()) {}
+
   virtual ~Entity() = default;
 
   // Core entity methods
@@ -43,8 +51,12 @@ class Entity {
 
   float getZOrder() const { return z_order; }
 
-  // Debug methods
+  const std::string& getUUID() const { return uuid; }
+
   virtual BoundingBox getBoundingBox() const = 0;
+
+  // Friend class to allow EntityManager to set AppState
+  friend class EntityManager;
 };
 
 // Entity manager for handling multiple entities
@@ -62,6 +74,8 @@ class EntityManager {
   T* createEntity(Args&&... args) {
     auto entity = std::make_unique<T>(std::forward<Args>(args)...);
     T* ptr = entity.get();
+    // Set the AppState for the entity so it can access the renderer
+    ptr->setAppState(appState);
     entities.push_back(std::move(entity));
     return ptr;
   }

@@ -2,7 +2,6 @@
 
 #include <spdlog/spdlog.h>
 
-#include <algorithm>
 #include <cmath>
 
 LineEntity::LineEntity(const SDL_FPoint& start, const SDL_FPoint& end)

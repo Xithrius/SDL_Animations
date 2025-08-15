@@ -7,12 +7,14 @@
 #include "context.h"
 #include "entities/entity.h"
 #include "graphics/fonts.h"
+#include "graphics/renderer.h"
 #include "imgui.h"
 
 class AppState {
  public:
   Context* context;
   FontRef font;
+  Renderer renderer;
 
   std::vector<std::vector<SDL_FPoint>> points;
   std::vector<float> point_speeds;

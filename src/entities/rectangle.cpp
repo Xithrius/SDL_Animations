@@ -1,7 +1,5 @@
 #include "rectangle.h"
 
-#include <spdlog/spdlog.h>
-
 RectangleEntity::RectangleEntity(const SDL_FRect& rect) : rect(rect) {}
 
 void RectangleEntity::update(float) {}

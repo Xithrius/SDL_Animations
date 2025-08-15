@@ -1,7 +1,5 @@
 #include "circle.h"
 
-#include <spdlog/spdlog.h>
-
 #include <cmath>
 
 CircleEntity::CircleEntity(const SDL_FPoint& center, float radius)

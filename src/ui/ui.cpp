@@ -3,9 +3,7 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlrenderer3.h"
 #include "core/app_state.h"
-#include "entities/circle.h"
 #include "entities/entity.h"
-#include "entities/line.h"
 
 void UI::render() {
   // Clear the renderer at the start of each frame
@@ -55,40 +53,40 @@ void UI::renderDebugFrames() {
 
       // Draw the debug frame rectangle
       SDL_RenderRect(this->appState->context->renderer, &debugRect);
+
+      // Render debug information above the bounding box
+      renderDebugInfo(entity);
     }
   }
 }
 
-void UI::createDemoEntities() {
-  int windowWidth, windowHeight;
-  SDL_GetWindowSize(this->appState->context->window, &windowWidth,
-                    &windowHeight);
+std::vector<std::string> UI::getDebugText(Entity* entity) {
+  BoundingBox bbox = entity->getBoundingBox();
+  std::vector<std::string> debugText;
+  debugText.push_back("UUID: " + entity->getUUID());
+  debugText.push_back("Pos: (" + std::to_string(static_cast<int>(bbox.minX)) +
+                      ", " + std::to_string(static_cast<int>(bbox.minY)) + ")");
+  debugText.push_back("Type: " + std::string(typeid(*entity).name()));
+  debugText.push_back(
+      "Size: " + std::to_string(static_cast<int>(bbox.maxX - bbox.minX)) + "x" +
+      std::to_string(static_cast<int>(bbox.maxY - bbox.minY)));
 
-  // Create some demo circles
-  for (int i = 0; i < 5; ++i) {
-    auto* circle = this->appState->entityManager.createEntity<CircleEntity>(
-        SDL_FPoint{SDL_randf() * windowWidth, SDL_randf() * windowHeight},
-        SDL_randf() * 30.0f + 10.0f);
-    circle->setColor({static_cast<Uint8>(SDL_randf() * 255),
-                      static_cast<Uint8>(SDL_randf() * 255),
-                      static_cast<Uint8>(SDL_randf() * 255), 128});
-    circle->setFilled(SDL_randf() > 0.5f);
-  }
+  return debugText;
+}
 
-  // Create some demo lines
-  for (int i = 0; i < 3; ++i) {
-    auto* line = this->appState->entityManager.createEntity<LineEntity>(
-        SDL_FPoint{SDL_randf() * windowWidth, SDL_randf() * windowHeight},
-        SDL_FPoint{SDL_randf() * windowWidth, SDL_randf() * windowHeight});
+void UI::renderDebugInfo(Entity* entity) {
+  BoundingBox bbox = entity->getBoundingBox();
+  int textX = static_cast<int>(bbox.minX);
+  int textY = static_cast<int>(bbox.minY) - 100;
 
-    LineEntity::GradientProperties gradientProps;
-    gradientProps.enabled = true;
-    gradientProps.startColor = {static_cast<Uint8>(SDL_randf() * 255),
-                                static_cast<Uint8>(SDL_randf() * 255),
-                                static_cast<Uint8>(SDL_randf() * 255), 255};
-    gradientProps.endColor = {static_cast<Uint8>(SDL_randf() * 255),
-                              static_cast<Uint8>(SDL_randf() * 255),
-                              static_cast<Uint8>(SDL_randf() * 255), 255};
-    line->setGradientProperties(gradientProps);
+  std::string entityType = typeid(*entity).name();
+
+  std::vector<std::string> debugText = getDebugText(entity);
+
+  SDL_Color debugTextColor = {255, 255, 255, 255};  // White
+
+  for (const auto& line : debugText) {
+    this->appState->renderer.renderText(line, textX, textY, debugTextColor);
+    textY += 20;
   }
 }
