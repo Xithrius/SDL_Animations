@@ -18,6 +18,12 @@ class RectangleEntity : public Entity {
 
   void render(SDL_Renderer* renderer) override;
 
+  // Entity type identification
+  EntityType getEntityType() const override {
+    static EntityType typeId = EntityTypeRegistry::registerType("Rectangle");
+    return typeId;
+  }
+
   // Rectangle-specific methods
   void setRect(const SDL_FRect& rect) { this->rect = rect; }
 

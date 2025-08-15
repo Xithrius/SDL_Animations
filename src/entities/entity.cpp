@@ -6,6 +6,38 @@
 
 #include "core/app_state.h"
 
+// Initialize static members
+std::unordered_map<std::string, uint32_t> EntityTypeRegistry::typeMap;
+std::vector<std::string> EntityTypeRegistry::typeNames;
+uint32_t EntityTypeRegistry::nextTypeId = 0;
+
+uint32_t EntityTypeRegistry::registerType(const std::string& typeName) {
+  auto it = typeMap.find(typeName);
+  if (it != typeMap.end()) {
+    return it->second;  // Type already registered
+  }
+
+  uint32_t typeId = nextTypeId++;
+  typeMap[typeName] = typeId;
+  typeNames.push_back(typeName);
+  return typeId;
+}
+
+std::string EntityTypeRegistry::getTypeName(uint32_t typeId) {
+  if (typeId < typeNames.size()) {
+    return typeNames[typeId];
+  }
+  return "Unknown";
+}
+
+uint32_t EntityTypeRegistry::getTypeId(const std::string& typeName) {
+  auto it = typeMap.find(typeName);
+  if (it != typeMap.end()) {
+    return it->second;
+  }
+  return UINT32_MAX;  // Invalid type ID
+}
+
 EntityManager::EntityManager(AppState* appState) : appState(appState) {}
 
 void EntityManager::removeEntity(Entity* entity) {
@@ -61,11 +93,10 @@ void EntityManager::render(SDL_Renderer* renderer) {
   }
 }
 
-std::vector<Entity*> EntityManager::getEntitiesByType(
-    const std::type_info& type) {
+std::vector<Entity*> EntityManager::getEntitiesByType(EntityType type) {
   std::vector<Entity*> result;
   for (auto& entity : entities) {
-    if (entity && typeid(*entity) == type) {
+    if (entity && entity->getEntityType() == type) {
       result.push_back(entity.get());
     }
   }

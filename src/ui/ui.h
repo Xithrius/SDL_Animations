@@ -34,6 +34,7 @@ class UI {
   std::vector<std::string> getDebugText(Entity* entity);
 
   void renderDebugInfo(Entity* entity);
+  void createDemoEntities();
 
   EventLoop* getEventLoop() const { return eventLoop; }
 };

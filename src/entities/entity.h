@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "utils/uuid.h"
@@ -16,6 +17,23 @@ struct BoundingBox {
   BoundingBox(float minX, float minY, float maxX, float maxY)
       : minX(minX), minY(minY), maxX(maxX), maxY(maxY) {}
 };
+
+// Entity type registration system - no need to modify this file for new
+// entities
+class EntityTypeRegistry {
+ private:
+  static std::unordered_map<std::string, uint32_t> typeMap;
+  static std::vector<std::string> typeNames;
+  static uint32_t nextTypeId;
+
+ public:
+  static uint32_t registerType(const std::string& typeName);
+  static std::string getTypeName(uint32_t typeId);
+  static uint32_t getTypeId(const std::string& typeName);
+};
+
+// EntityType is now just a uint32_t for efficiency
+using EntityType = uint32_t;
 
 class Entity {
  protected:
@@ -37,6 +55,9 @@ class Entity {
   virtual void update(float deltaTime) = 0;
 
   virtual void render(SDL_Renderer* renderer) = 0;
+
+  // Entity type identification - replaces typeid
+  virtual EntityType getEntityType() const = 0;
 
   // Entity state
   virtual void setVisible(bool visible) { this->visible = visible; }
@@ -88,7 +109,7 @@ class EntityManager {
   void render(SDL_Renderer* renderer);
 
   // Entity queries
-  std::vector<Entity*> getEntitiesByType(const std::type_info& type);
+  std::vector<Entity*> getEntitiesByType(EntityType type);
   std::vector<Entity*> getAllEntities();
 
   template <typename T>

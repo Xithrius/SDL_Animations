@@ -19,6 +19,12 @@ class CircleEntity : public Entity {
 
   void render(SDL_Renderer* renderer) override;
 
+  // Entity type identification
+  EntityType getEntityType() const override {
+    static EntityType typeId = EntityTypeRegistry::registerType("Circle");
+    return typeId;
+  }
+
   // Debug methods
   BoundingBox getBoundingBox() const override;
 

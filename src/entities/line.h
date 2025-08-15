@@ -37,6 +37,12 @@ class LineEntity : public Entity {
 
   void render(SDL_Renderer* renderer) override;
 
+  // Entity type identification
+  EntityType getEntityType() const override {
+    static EntityType typeId = EntityTypeRegistry::registerType("Line");
+    return typeId;
+  }
+
   // Debug methods
   BoundingBox getBoundingBox() const override;
 

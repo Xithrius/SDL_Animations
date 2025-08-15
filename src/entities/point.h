@@ -38,6 +38,12 @@ class PointEntity : public Entity {
 
   void render(SDL_Renderer* renderer) override;
 
+  // Entity type identification
+  EntityType getEntityType() const override {
+    static EntityType typeId = EntityTypeRegistry::registerType("Point");
+    return typeId;
+  }
+
   // Point-specific methods
   void setSpeed(float speed) { this->speed = speed; }
 
