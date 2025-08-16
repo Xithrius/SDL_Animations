@@ -10,7 +10,10 @@
 class AppState;
 
 // Point entity with trail support
-class PointEntity : public Entity {
+class PointEntity : public Entity,
+                    public IPositionable,
+                    public IUpdatable,
+                    public IInteractive {
  public:
   // Trail rendering properties
   struct TrailProperties {
@@ -27,6 +30,7 @@ class PointEntity : public Entity {
   size_t trailLength;
   float speed;
   float speedMultiplier = 1.0f;
+  bool draggable = true;  // Can be set to false to disable dragging
 
   TrailProperties trailProps;
 
@@ -43,6 +47,22 @@ class PointEntity : public Entity {
     static EntityType typeId = EntityTypeRegistry::registerType("Point");
     return typeId;
   }
+
+  // Interface implementations
+  IPositionable* asPositionable() override { return this; }
+
+  IUpdatable* asUpdatable() override { return this; }
+
+  IInteractive* asInteractive() override { return this; }
+
+  // IPositionable implementation
+  void setPosition(const SDL_FPoint& position) override;
+  SDL_FPoint getPosition() const override;
+
+  // IInteractive implementation
+  bool canBeDragged() const override { return draggable; }
+
+  void setDraggable(bool draggable) { this->draggable = draggable; }
 
   // Point-specific methods
   void setSpeed(float speed) { this->speed = speed; }

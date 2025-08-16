@@ -37,10 +37,10 @@ set(SOURCES
     src/entities/line.cpp
     src/entities/point.cpp
     src/entities/rectangle.cpp
-    src/entities/text.cpp
     src/entities/triangle.cpp
     src/graphics/renderer.cpp
     src/graphics/fonts.cpp
+    src/systems/input_system.cpp
     src/ui/ui.cpp
     src/ui/debug.cpp
     src/graphics/embedded_fonts/space_mono_regular.h

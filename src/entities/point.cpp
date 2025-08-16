@@ -14,27 +14,23 @@ PointEntity::PointEntity(AppState* appState, size_t trailLength, float speed)
 }
 
 void PointEntity::update(float deltaTime) {
-  if (!active) return;
+  // Update point movement based on speed
+  if (!trail.empty() && speed > 0.0f) {
+    // Simple movement - you can implement more complex movement patterns here
+    float distance = speed * speedMultiplier * deltaTime;
 
-  int windowWidth, windowHeight;
-  SDL_GetWindowSize(appState->context->window, &windowWidth, &windowHeight);
+    // For now, just move in a simple pattern
+    // You can implement more complex movement logic here
+    trail[0].x += distance * 0.1f;   // Move slowly to the right
+    trail[0].y += distance * 0.05f;  // Move slowly down
 
-  // Calculate new position
-  double currentSpeed = static_cast<double>(speed) * speedMultiplier;
-  double newX = static_cast<double>(trail[0].x) +
-                currentSpeed * static_cast<double>(deltaTime);
-  double newY = static_cast<double>(trail[0].y) +
-                currentSpeed * static_cast<double>(deltaTime);
-
-  // Wrap around screen
-  newX = fmod(newX, static_cast<double>(windowWidth));
-  newY = fmod(newY, static_cast<double>(windowHeight));
-
-  // Shift trail and add new position
-  for (size_t i = trail.size() - 1; i > 0; --i) {
-    trail[i] = trail[i - 1];
+    // Update trail
+    if (trail.size() > 1) {
+      for (size_t i = trail.size() - 1; i > 0; --i) {
+        trail[i] = trail[i - 1];
+      }
+    }
   }
-  trail[0] = {static_cast<float>(newX), static_cast<float>(newY)};
 }
 
 void PointEntity::render(SDL_Renderer* renderer) {
@@ -93,3 +89,11 @@ void PointEntity::setInitialPosition(float x, float y) {
     trail[i] = {x - i, y - i};  // Create initial trail
   }
 }
+
+void PointEntity::setPosition(const SDL_FPoint& position) {
+  if (!trail.empty()) {
+    trail[0] = position;
+  }
+}
+
+SDL_FPoint PointEntity::getPosition() const { return getCurrentPosition(); }

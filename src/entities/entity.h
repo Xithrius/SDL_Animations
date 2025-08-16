@@ -35,6 +35,30 @@ class EntityTypeRegistry {
 // EntityType is now just a uint32_t for efficiency
 using EntityType = uint32_t;
 
+// Optional interfaces that entities can implement
+class IPositionable {
+ public:
+  virtual ~IPositionable() = default;
+  virtual void setPosition(const SDL_FPoint& position) = 0;
+  virtual SDL_FPoint getPosition() const = 0;
+};
+
+class IUpdatable {
+ public:
+  virtual ~IUpdatable() = default;
+  virtual void update(float deltaTime) = 0;
+};
+
+class IInteractive {
+ public:
+  virtual ~IInteractive() = default;
+  virtual bool canBeDragged() const = 0;
+
+  virtual void onDragStart() {}
+
+  virtual void onDragEnd() {}
+};
+
 class Entity {
  protected:
   bool visible = true;
@@ -51,9 +75,7 @@ class Entity {
 
   virtual ~Entity() = default;
 
-  // Core entity methods
-  virtual void update(float deltaTime) = 0;
-
+  // Core entity methods - only render is required
   virtual void render(SDL_Renderer* renderer) = 0;
 
   // Entity type identification - replaces typeid
@@ -74,7 +96,20 @@ class Entity {
 
   const std::string& getUUID() const { return uuid; }
 
-  virtual BoundingBox getBoundingBox() const = 0;
+  virtual void update(float) {}
+
+  virtual BoundingBox getBoundingBox() const {
+    // Default implementation returns empty bounding box
+    // Entities should override if they need collision detection
+    return BoundingBox(0, 0, 0, 0);
+  }
+
+  // Interface query methods
+  virtual IPositionable* asPositionable() { return nullptr; }
+
+  virtual IUpdatable* asUpdatable() { return nullptr; }
+
+  virtual IInteractive* asInteractive() { return nullptr; }
 
   // Friend class to allow EntityManager to set AppState
   friend class EntityManager;

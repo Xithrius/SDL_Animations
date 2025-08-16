@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include "imgui_impl_sdl3.h"
+#include "systems/input_system.h"
 
 EventLoop::EventLoop() {
   try {
@@ -61,16 +62,18 @@ void EventLoop::run() {
  * @brief Handles all input events (keyboard, mouse, etc.).
  */
 void EventLoop::HandleInputEvents() {
-  SDL_Event event;
-  while (SDL_PollEvent(&event)) {
-    ImGui_ImplSDL3_ProcessEvent(&event);
-    if (event.type == SDL_EVENT_QUIT) this->running = false;
-    if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-        event.window.windowID == SDL_GetWindowID(this->context->window))
-      this->running = false;
-    if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_F3) {
-      this->ui->debug.toggle();
-    }
+  // Use the InputSystem to process all events
+  this->appState->inputSystem->processEvents();
+
+  // Check for quit events
+  if (this->appState->inputSystem->shouldQuit()) {
+    this->running = false;
+    return;
+  }
+
+  // Handle application-level events that the InputSystem doesn't handle
+  if (this->appState->inputSystem->isKeyJustPressed(SDLK_F3)) {
+    this->ui->debug.toggle();
   }
 }
 
@@ -80,6 +83,7 @@ void EventLoop::HandleInputEvents() {
  * @param deltaTime The time since the last update.
  */
 void EventLoop::updateEvents(float deltaTime) {
+  this->appState->inputSystem->update();
   this->appState->entityManager.update(deltaTime);
 }
 

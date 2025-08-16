@@ -91,3 +91,29 @@ BoundingBox LineEntity::getBoundingBox() const {
   return BoundingBox(origin.x - maxExtent, origin.y - maxExtent,
                      origin.x + maxExtent, origin.y + maxExtent);
 }
+
+void LineEntity::setPosition(const SDL_FPoint& position) {
+  // Calculate the center of the line
+  SDL_FPoint center = {(start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f};
+
+  // Calculate the offset to move the line
+  float offsetX = position.x - center.x;
+  float offsetY = position.y - center.y;
+
+  // Move both start and end points by the offset
+  start.x += offsetX;
+  start.y += offsetY;
+  end.x += offsetX;
+  end.y += offsetY;
+
+  // Update origin for rotation if it exists
+  if (origin.x != 0.0f || origin.y != 0.0f) {
+    origin.x += offsetX;
+    origin.y += offsetY;
+  }
+}
+
+SDL_FPoint LineEntity::getPosition() const {
+  // Return the center of the line
+  return SDL_FPoint{(start.x + end.x) / 2.0f, (start.y + end.y) / 2.0f};
+}

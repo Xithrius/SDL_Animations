@@ -6,7 +6,10 @@
 
 #include "entity.h"
 
-class LineEntity : public Entity {
+class LineEntity : public Entity,
+                   public IPositionable,
+                   public IUpdatable,
+                   public IInteractive {
  public:
   // Gradient properties
   struct GradientProperties {
@@ -29,6 +32,7 @@ class LineEntity : public Entity {
   float angle = 0.0f;          // Current rotation angle in radians
   float rotationSpeed = 1.0f;  // Rotation speed in radians per second
   float lineLength = 0.0f;     // Length of the line for rotation calculations
+  bool draggable = true;       // Can be set to false to disable dragging
 
  public:
   LineEntity(const SDL_FPoint& start, const SDL_FPoint& end);
@@ -45,6 +49,22 @@ class LineEntity : public Entity {
 
   // Debug methods
   BoundingBox getBoundingBox() const override;
+
+  // Interface implementations
+  IPositionable* asPositionable() override { return this; }
+
+  IUpdatable* asUpdatable() override { return this; }
+
+  IInteractive* asInteractive() override { return this; }
+
+  // IPositionable implementation
+  void setPosition(const SDL_FPoint& position) override;
+  SDL_FPoint getPosition() const override;
+
+  // IInteractive implementation
+  bool canBeDragged() const override { return draggable; }
+
+  void setDraggable(bool draggable) { this->draggable = draggable; }
 
   // Line-specific methods
   void setStart(const SDL_FPoint& start) { this->start = start; }

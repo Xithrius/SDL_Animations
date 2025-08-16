@@ -10,6 +10,9 @@
 #include "graphics/renderer.h"
 #include "imgui.h"
 
+// Forward declaration
+class InputSystem;
+
 class AppState {
  public:
   Context* context;
@@ -24,6 +27,7 @@ class AppState {
   ImGuiIO* io;
 
   EntityManager entityManager;
+  InputSystem* inputSystem;
 
   AppState(Context* context);
   ~AppState();

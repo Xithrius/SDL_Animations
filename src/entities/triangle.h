@@ -4,11 +4,14 @@
 
 #include "entity.h"
 
-class TriangleEntity : public Entity {
+class TriangleEntity : public Entity,
+                       public IPositionable,
+                       public IInteractive {
  private:
   SDL_FPoint point1, point2, point3;
   SDL_Color color = {255, 255, 255, 255};
   bool filled = true;
+  bool draggable = true;  // Can be set to false to disable dragging
 
  public:
   TriangleEntity(const SDL_FPoint& p1, const SDL_FPoint& p2,
@@ -24,6 +27,20 @@ class TriangleEntity : public Entity {
   }
 
   BoundingBox getBoundingBox() const override;
+
+  // Interface implementations
+  IPositionable* asPositionable() override { return this; }
+
+  IInteractive* asInteractive() override { return this; }
+
+  // IPositionable implementation
+  void setPosition(const SDL_FPoint& position) override;
+  SDL_FPoint getPosition() const override;
+
+  // IInteractive implementation
+  bool canBeDragged() const override { return draggable; }
+
+  void setDraggable(bool draggable) { this->draggable = draggable; }
 
   // Triangle-specific methods
   void setPoints(const SDL_FPoint& p1, const SDL_FPoint& p2,

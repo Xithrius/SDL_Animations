@@ -2,8 +2,11 @@
 
 #include "entities/circle.h"
 #include "entities/line.h"
+#include "entities/rectangle.h"
+#include "entities/triangle.h"
 #include "event_loop.h"
 #include "imgui.h"
+#include "systems/input_system.h"
 #include "ui/ui.h"
 
 void DebugUI::debugOptions() {
@@ -98,6 +101,36 @@ void DebugUI::render() {
   ImGui::Text("Entity Count: %zu",
               getAppState()->entityManager.getEntityCount());
 
+  // Show drag state information
+  if (getAppState()->inputSystem->isDraggingEntity()) {
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dragging: YES");
+    Entity* draggedEntity = getAppState()->inputSystem->getDraggedEntity();
+    if (draggedEntity) {
+      ImGui::Text("Dragged Entity: %s", draggedEntity->getUUID().c_str());
+    }
+  } else {
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Dragging: NO");
+  }
+
+  ImGui::Text("Mouse Position: (%.1f, %.1f)",
+              getAppState()->inputSystem->getMousePosition().x,
+              getAppState()->inputSystem->getMousePosition().y);
+
+  // Show key states
+  ImGui::Separator();
+  ImGui::Text("Input States:");
+  ImGui::Text("F3 Pressed: %s",
+              getAppState()->inputSystem->isKeyPressed(SDLK_F3) ? "YES" : "NO");
+  ImGui::Text(
+      "F3 Just Pressed: %s",
+      getAppState()->inputSystem->isKeyJustPressed(SDLK_F3) ? "YES" : "NO");
+  ImGui::Text(
+      "Left Mouse: %s",
+      getAppState()->inputSystem->isMouseButtonPressed(1) ? "YES" : "NO");
+  ImGui::Text(
+      "Left Mouse Just Pressed: %s",
+      getAppState()->inputSystem->isMouseButtonJustPressed(1) ? "YES" : "NO");
+
   if (ImGui::Button("Add Random Line")) {
     int windowWidth, windowHeight;
     SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
@@ -130,6 +163,70 @@ void DebugUI::render() {
                       static_cast<Uint8>(SDL_randf() * 255),
                       static_cast<Uint8>(SDL_randf() * 255), 128});
     circle->setFilled(SDL_randf() > 0.5f);
+  }
+
+  if (ImGui::Button("Create Draggable Test Entities")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    // Create a red circle for dragging
+    auto* circle = getAppState()->entityManager.createEntity<CircleEntity>(
+        SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f}, 30.0f);
+    circle->setColor({255, 0, 0, 255});  // Red
+    circle->setFilled(true);
+
+    // Create a blue rectangle for dragging
+    auto* rect = getAppState()->entityManager.createEntity<RectangleEntity>(
+        SDL_FRect{windowWidth / 2.0f - 40.0f, windowHeight / 2.0f - 40.0f,
+                  80.0f, 80.0f});
+    rect->setColor({0, 0, 255, 255});  // Blue
+    rect->setFilled(true);
+
+    // Create a green triangle for dragging
+    auto* triangle = getAppState()->entityManager.createEntity<TriangleEntity>(
+        SDL_FPoint{windowWidth / 2.0f - 50.0f, windowHeight / 2.0f + 50.0f},
+        SDL_FPoint{windowWidth / 2.0f + 50.0f, windowHeight / 2.0f + 50.0f},
+        SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f + 100.0f});
+    triangle->setColor({0, 255, 0, 255});  // Green
+    triangle->setFilled(true);
+  }
+
+  if (ImGui::Button("Create Non-Draggable Text")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+  }
+
+  if (ImGui::Button("Create Rotating Line")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    // Create a line that rotates and can be dragged
+    SDL_FPoint center = {static_cast<float>(windowWidth) / 2.0f,
+                         static_cast<float>(windowHeight) / 2.0f};
+    SDL_FPoint start = {center.x - 50.0f, center.y};
+    SDL_FPoint end = {center.x + 50.0f, center.y};
+
+    auto* line =
+        getAppState()->entityManager.createEntity<LineEntity>(start, end);
+    line->setRotationSpeed(2.0f);  // Rotate at 2 radians per second
+    line->setThickness(3.0f);
+    line->setColor({255, 0, 255, 255});  // Magenta
+  }
+
+  if (ImGui::Button("Create Non-Draggable Circle")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    // Create a circle that cannot be dragged
+    auto* circle = getAppState()->entityManager.createEntity<CircleEntity>(
+        SDL_FPoint{windowWidth / 2.0f + 100.0f, windowHeight / 2.0f}, 25.0f);
+    circle->setColor({128, 128, 128, 255});  // Gray
+    circle->setFilled(true);
+    circle->setDraggable(false);  // Disable dragging
   }
 
   if (ImGui::Button("Clear All Entities")) {
