@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include "imgui_impl_sdl3.h"
+#include "systems/animation_system.h"
 #include "systems/input_system.h"
 
 EventLoop::EventLoop() {
@@ -84,6 +85,7 @@ void EventLoop::HandleInputEvents() {
  */
 void EventLoop::updateEvents(float deltaTime) {
   this->appState->inputSystem->update();
+  this->appState->animationSystem->update(deltaTime);
   this->appState->entityManager.update(deltaTime);
 }
 

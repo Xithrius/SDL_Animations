@@ -4,6 +4,8 @@
 
 #include <cmath>
 
+#include "systems/animation_system.h"
+
 LineEntity::LineEntity(const SDL_FPoint& start, const SDL_FPoint& end)
     : start(start), end(end) {
   // Calculate the origin (center point) of the line
@@ -17,69 +19,74 @@ LineEntity::LineEntity(const SDL_FPoint& start, const SDL_FPoint& end)
 }
 
 void LineEntity::update(float deltaTime) {
-  // Update rotation angle
-  angle += rotationSpeed * deltaTime;
+  // Update rotation if rotation speed is set
+  if (rotationSpeed != 0.0f) {
+    angle += rotationSpeed * deltaTime;
 
-  // Keep angle in reasonable range (optional)
-  if (angle > 2.0f * M_PI) {
-    angle -= 2.0f * M_PI;
+    // Keep angle in reasonable range
+    while (angle > 2.0f * M_PI) {
+      angle -= 2.0f * M_PI;
+    }
+    while (angle < 0.0f) {
+      angle += 2.0f * M_PI;
+    }
   }
 
-  // Calculate new start and end points based on rotation
-  float halfLength = lineLength / 2.0f;
+  // Update animations
+  for (auto& animation : animations) {
+    if (animation && !animation->isFinished()) {
+      animation->update(deltaTime);
 
-  // Calculate the direction vector of the line
-  float directionX = cosf(angle);
-  float directionY = sinf(angle);
+      // Handle gradient animations
+      if (auto* gradientAnim =
+              dynamic_cast<class GradientAnimation*>(animation.get())) {
+        setAnimatedColor(gradientAnim->getCurrentColor());
+      }
+    }
+  }
 
-  // Update start and end points
-  start.x = origin.x - directionX * halfLength;
-  start.y = origin.y - directionY * halfLength;
-  end.x = origin.x + directionX * halfLength;
-  end.y = origin.y + directionY * halfLength;
+  // Remove finished animations
+  animations.erase(
+      std::remove_if(animations.begin(), animations.end(),
+                     [](const std::shared_ptr<class Animation>& anim) {
+                       return anim && anim->isFinished();
+                     }),
+      animations.end());
 }
 
 void LineEntity::render(SDL_Renderer* renderer) {
   if (!visible) return;
 
-  if (!gradientProps.enabled) {
-    // Render solid line
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
-    return;
+  // Use animated color if available, otherwise use base color
+  SDL_Color renderColor = animatedColor;
+  SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b,
+                         renderColor.a);
+
+  // Draw the line
+  SDL_RenderLine(renderer, start.x, start.y, end.x, end.y);
+}
+
+void LineEntity::addAnimation(std::shared_ptr<class Animation> animation) {
+  if (animation) {
+    animations.push_back(animation);
   }
+}
 
-  // Render gradient line by drawing multiple line segments
-  const int segments = 50;  // Number of segments for gradient
-  for (int i = 0; i < segments; ++i) {
-    float progress = static_cast<float>(i) / static_cast<float>(segments - 1);
-
-    SDL_Color color;
-    color.r = static_cast<Uint8>(
-        gradientProps.startColor.r +
-        (gradientProps.endColor.r - gradientProps.startColor.r) * progress);
-    color.g = static_cast<Uint8>(
-        gradientProps.startColor.g +
-        (gradientProps.endColor.g - gradientProps.startColor.g) * progress);
-    color.b = static_cast<Uint8>(
-        gradientProps.startColor.b +
-        (gradientProps.endColor.b - gradientProps.startColor.b) * progress);
-    color.a = static_cast<Uint8>(
-        gradientProps.startColor.a +
-        (gradientProps.endColor.a - gradientProps.startColor.a) * progress);
-
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
-    // Calculate segment start and end
-    SDL_FPoint segStart = {
-        start.x + (end.x - start.x) * (static_cast<float>(i) / segments),
-        start.y + (end.y - start.y) * (static_cast<float>(i) / segments)};
-    SDL_FPoint segEnd = {
-        start.x + (end.x - start.x) * (static_cast<float>(i + 1) / segments),
-        start.y + (end.y - start.y) * (static_cast<float>(i + 1) / segments)};
-
-    SDL_RenderLine(renderer, segStart.x, segStart.y, segEnd.x, segEnd.y);
+void LineEntity::removeAnimation(std::shared_ptr<class Animation> animation) {
+  auto it = std::find(animations.begin(), animations.end(), animation);
+  if (it != animations.end()) {
+    animations.erase(it);
   }
+}
+
+std::vector<std::shared_ptr<class Animation>> LineEntity::getAnimations()
+    const {
+  return animations;
+}
+
+void LineEntity::clearAnimations() {
+  animations.clear();
+  animatedColor = color;  // Reset to base color
 }
 
 BoundingBox LineEntity::getBoundingBox() const {

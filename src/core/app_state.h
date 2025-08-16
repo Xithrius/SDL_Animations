@@ -10,8 +10,9 @@
 #include "graphics/renderer.h"
 #include "imgui.h"
 
-// Forward declaration
+// Forward declarations
 class InputSystem;
+class AnimationSystem;
 
 class AppState {
  public:
@@ -28,6 +29,7 @@ class AppState {
 
   EntityManager entityManager;
   InputSystem* inputSystem;
+  AnimationSystem* animationSystem;
 
   AppState(Context* context);
   ~AppState();

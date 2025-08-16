@@ -5,10 +5,12 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlrenderer3.h"
 #include "constants.h"
+#include "systems/animation_system.h"
 #include "systems/input_system.h"
 
 AppState::AppState(Context* context) : context(context), entityManager(this) {
   inputSystem = new InputSystem(this);
+  animationSystem = new AnimationSystem(this);
   font.loadFont();
 
   // Set up the renderer with the loaded font
@@ -43,6 +45,7 @@ AppState::AppState(Context* context) : context(context), entityManager(this) {
 
 AppState::~AppState() {
   delete inputSystem;
+  delete animationSystem;
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();

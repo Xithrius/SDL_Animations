@@ -6,6 +6,7 @@
 #include "entities/triangle.h"
 #include "event_loop.h"
 #include "imgui.h"
+#include "systems/animation_system.h"
 #include "systems/input_system.h"
 #include "ui/ui.h"
 
@@ -214,6 +215,44 @@ void DebugUI::render() {
     line->setRotationSpeed(2.0f);  // Rotate at 2 radians per second
     line->setThickness(3.0f);
     line->setColor({255, 0, 255, 255});  // Magenta
+  }
+
+  if (ImGui::Button("Create Animated Gradient Line")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    // Create a line with animated gradient
+    SDL_FPoint center = {static_cast<float>(windowWidth) / 2.0f,
+                         static_cast<float>(windowHeight) / 2.0f - 100.0f};
+    SDL_FPoint start = {center.x - 80.0f, center.y};
+    SDL_FPoint end = {center.x + 80.0f, center.y};
+
+    auto* line =
+        getAppState()->entityManager.createEntity<LineEntity>(start, end);
+    line->setThickness(5.0f);
+    line->setColor({255, 255, 255, 255});  // Start with white
+
+    // Create gradient animation
+    std::vector<SDL_Color> gradientColors = {
+        {255, 0, 0, 255},    // Red
+        {255, 165, 0, 255},  // Orange
+        {255, 255, 0, 255},  // Yellow
+        {0, 255, 0, 255},    // Green
+        {0, 0, 255, 255},    // Blue
+        {128, 0, 128, 255},  // Purple
+        {255, 0, 255, 255}   // Magenta
+    };
+
+    auto gradientAnim =
+        std::make_shared<GradientAnimation>(10.0f,  // 10 second duration
+                                            line,   // Target entity
+                                            gradientColors);
+    gradientAnim->setLooping(true);                  // Loop forever
+    gradientAnim->setColorTransitionDuration(1.5f);  // 1.5 seconds per color
+
+    // Add animation to the line
+    line->addAnimation(gradientAnim);
   }
 
   if (ImGui::Button("Create Non-Draggable Circle")) {

@@ -6,10 +6,15 @@
 
 #include "entity.h"
 
+// Forward declarations
+class Animation;
+class GradientAnimation;
+
 class LineEntity : public Entity,
                    public IPositionable,
                    public IUpdatable,
-                   public IInteractive {
+                   public IInteractive,
+                   public IAnimatable {
  public:
   // Gradient properties
   struct GradientProperties {
@@ -34,6 +39,10 @@ class LineEntity : public Entity,
   float lineLength = 0.0f;     // Length of the line for rotation calculations
   bool draggable = true;       // Can be set to false to disable dragging
 
+  // Animation support
+  std::vector<std::shared_ptr<class Animation>> animations;
+  SDL_Color animatedColor = color;  // Color that can be modified by animations
+
  public:
   LineEntity(const SDL_FPoint& start, const SDL_FPoint& end);
 
@@ -57,6 +66,8 @@ class LineEntity : public Entity,
 
   IInteractive* asInteractive() override { return this; }
 
+  IAnimatable* asAnimatable() override { return this; }
+
   // IPositionable implementation
   void setPosition(const SDL_FPoint& position) override;
   SDL_FPoint getPosition() const override;
@@ -66,6 +77,12 @@ class LineEntity : public Entity,
 
   void setDraggable(bool draggable) { this->draggable = draggable; }
 
+  // IAnimatable implementation
+  void addAnimation(std::shared_ptr<class Animation> animation) override;
+  void removeAnimation(std::shared_ptr<class Animation> animation) override;
+  std::vector<std::shared_ptr<class Animation>> getAnimations() const override;
+  void clearAnimations() override;
+
   // Line-specific methods
   void setStart(const SDL_FPoint& start) { this->start = start; }
 
@@ -73,11 +90,19 @@ class LineEntity : public Entity,
 
   void setThickness(float thickness) { this->thickness = thickness; }
 
-  void setColor(const SDL_Color& color) { this->color = color; }
+  void setColor(const SDL_Color& color) {
+    this->color = color;
+    this->animatedColor = color;  // Reset animated color to base color
+  }
 
   void setGradientProperties(const GradientProperties& props) {
     gradientProps = props;
   }
+
+  // Animation-specific methods
+  void setAnimatedColor(const SDL_Color& color) { animatedColor = color; }
+
+  SDL_Color getAnimatedColor() const { return animatedColor; }
 
   // Rotation methods
   void setOrigin(const SDL_FPoint& origin) { this->origin = origin; }

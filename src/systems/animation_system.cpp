@@ -5,22 +5,50 @@
 #include <algorithm>
 
 void AnimationSystem::update(float deltaTime) {
+  // Remove finished animations
+  animations.erase(std::remove_if(animations.begin(), animations.end(),
+                                  [](const std::shared_ptr<Animation>& anim) {
+                                    return anim->isFinished() &&
+                                           !anim->isLooping();
+                                  }),
+                   animations.end());
+
   // Update all active animations
-  // This is a placeholder for future animation logic
-  // For now, the entity manager handles entity updates directly
+  for (auto& animation : animations) {
+    animation->update(deltaTime);
+
+    // Handle looping animations
+    if (animation->isFinished() && animation->isLooping()) {
+      animation->reset();
+    }
+  }
 }
 
 void AnimationSystem::addAnimation(std::shared_ptr<Animation> animation) {
-  // Add animation to the system
-  // This is a placeholder for future animation management
+  if (animation) {
+    animations.push_back(animation);
+  }
 }
 
 void AnimationSystem::removeAnimation(std::shared_ptr<Animation> animation) {
-  // Remove animation from the system
-  // This is a placeholder for future animation management
+  auto it = std::find(animations.begin(), animations.end(), animation);
+
+  if (it != animations.end()) {
+    animations.erase(it);
+  }
 }
 
-void AnimationSystem::clear() {
-  // Clear all animations
-  // This is a placeholder for future animation management
+void AnimationSystem::clear() { animations.clear(); }
+
+std::vector<std::shared_ptr<Animation>> AnimationSystem::getAnimationsForEntity(
+    Entity* entity) {
+  std::vector<std::shared_ptr<Animation>> result;
+
+  for (auto& animation : animations) {
+    if (animation->getTargetEntity() == entity) {
+      result.push_back(animation);
+    }
+  }
+
+  return result;
 }

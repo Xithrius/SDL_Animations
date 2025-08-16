@@ -59,6 +59,16 @@ class IInteractive {
   virtual void onDragEnd() {}
 };
 
+class IAnimatable {
+ public:
+  virtual ~IAnimatable() = default;
+  virtual void addAnimation(std::shared_ptr<class Animation> animation) = 0;
+  virtual void removeAnimation(std::shared_ptr<class Animation> animation) = 0;
+  virtual std::vector<std::shared_ptr<class Animation>> getAnimations()
+      const = 0;
+  virtual void clearAnimations() = 0;
+};
+
 class Entity {
  protected:
   bool visible = true;
@@ -110,6 +120,8 @@ class Entity {
   virtual IUpdatable* asUpdatable() { return nullptr; }
 
   virtual IInteractive* asInteractive() { return nullptr; }
+
+  virtual IAnimatable* asAnimatable() { return nullptr; }
 
   // Friend class to allow EntityManager to set AppState
   friend class EntityManager;
