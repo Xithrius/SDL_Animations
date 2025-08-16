@@ -4,6 +4,7 @@
 #include "entities/line.h"
 #include "entities/rectangle.h"
 #include "entities/triangle.h"
+#include "entities/waypoint.h"
 #include "event_loop.h"
 #include "imgui.h"
 #include "systems/animation_system.h"
@@ -266,6 +267,77 @@ void DebugUI::render() {
     circle->setColor({128, 128, 128, 255});  // Gray
     circle->setFilled(true);
     circle->setDraggable(false);  // Disable dragging
+  }
+
+  if (ImGui::Button("Create Waypoint")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    auto* waypoint = getAppState()->entityManager.createEntity<WaypointEntity>(
+        getAppState());
+    waypoint->setInitialPosition(windowWidth / 2.0f, windowHeight / 2.0f);
+  }
+
+  if (ImGui::Button("Create 100 Waypoints")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    for (int i = 0; i < 100; i++) {
+      auto* waypoint =
+          getAppState()->entityManager.createEntity<WaypointEntity>(
+              getAppState());
+      waypoint->setInitialPosition(windowWidth / 2.0f, windowHeight / 2.0f);
+    }
+  }
+
+  if (ImGui::Button("Regenerate Waypoint Positions")) {
+    // Find all waypoint entities and regenerate their random positions
+    auto entities = getAppState()->entityManager.getAllEntities();
+    for (auto* entity : entities) {
+      if (auto* waypoint = dynamic_cast<WaypointEntity*>(entity)) {
+        waypoint->regenerateRandomPosition();
+      }
+    }
+  }
+
+  if (ImGui::Button("Change Waypoint Speed")) {
+    // Change movement speed for all waypoints
+    auto entities = getAppState()->entityManager.getAllEntities();
+    for (auto* entity : entities) {
+      if (auto* waypoint = dynamic_cast<WaypointEntity*>(entity)) {
+        // Cycle through different speeds: 0.5, 1.0, 2.0, 5.0
+        float currentSpeed = waypoint->getMovementSpeed();
+        if (currentSpeed < 0.5f)
+          waypoint->setMovementSpeed(0.5f);
+        else if (currentSpeed < 1.0f)
+          waypoint->setMovementSpeed(1.0f);
+        else if (currentSpeed < 2.0f)
+          waypoint->setMovementSpeed(2.0f);
+        else if (currentSpeed < 5.0f)
+          waypoint->setMovementSpeed(5.0f);
+        else
+          waypoint->setMovementSpeed(0.5f);
+      }
+    }
+  }
+
+  if (ImGui::Button("Print Waypoint Positions")) {
+    // Print current positions of all waypoints
+    auto entities = getAppState()->entityManager.getAllEntities();
+    int waypointCount = 0;
+    for (auto* entity : entities) {
+      if (auto* waypoint = dynamic_cast<WaypointEntity*>(entity)) {
+        waypointCount++;
+        spdlog::info("Waypoint {}: current=({:.1f}, {:.1f})", waypointCount,
+                     waypoint->getCurrentPosition().x,
+                     waypoint->getCurrentPosition().y);
+      }
+    }
+    if (waypointCount == 0) {
+      spdlog::info("No waypoints found");
+    }
   }
 
   if (ImGui::Button("Clear All Entities")) {

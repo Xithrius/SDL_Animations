@@ -38,6 +38,7 @@ set(SOURCES
     src/entities/point.cpp
     src/entities/rectangle.cpp
     src/entities/triangle.cpp
+    src/entities/waypoint.cpp
     src/graphics/renderer.cpp
     src/graphics/fonts.cpp
     src/systems/input_system.cpp

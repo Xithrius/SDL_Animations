@@ -1,7 +1,5 @@
 #include "point.h"
 
-#include <cmath>
-
 #include "core/app_state.h"
 
 PointEntity::PointEntity(AppState* appState, size_t trailLength, float speed)
