@@ -16,8 +16,8 @@ void DebugUI::debugOptions() {
   if (this->debugFrames) {
   }
 
-  ImGui::Separator();
-  ImGui::Text("Framerate Controls:");
+  ImGui::Spacing();
+  ImGui::SeparatorText("Framerate Controls");
 
   float targetFPS = getUI()->getEventLoop()->getTargetFPS();
 
@@ -47,9 +47,8 @@ void DebugUI::debugOptions() {
     getUI()->getEventLoop()->setTargetFPS(targetFPS);
   }
 
-  // Line rotation controls
-  ImGui::Separator();
-  ImGui::Text("Line Rotation Controls:");
+  ImGui::Spacing();
+  ImGui::SeparatorText("Line Rotation Controls");
 
   static float rotationSpeed = 1.0f;
   if (ImGui::SliderFloat("Rotation Speed", &rotationSpeed, 0.0f, 5.0f)) {
@@ -97,9 +96,8 @@ void DebugUI::render() {
               1000.0f / getAppState()->io->Framerate,
               getAppState()->io->Framerate);
 
-  ImGui::Separator();
-  ImGui::Text("Entity System:");
-
+  ImGui::Spacing();
+  ImGui::SeparatorText("Entity System");
   ImGui::Text("Entity Count: %zu",
               getAppState()->entityManager.getEntityCount());
 
@@ -119,19 +117,14 @@ void DebugUI::render() {
               getAppState()->inputSystem->getMousePosition().y);
 
   // Show key states
-  ImGui::Separator();
-  ImGui::Text("Input States:");
-  ImGui::Text("F3 Pressed: %s",
-              getAppState()->inputSystem->isKeyPressed(SDLK_F3) ? "YES" : "NO");
-  ImGui::Text(
-      "F3 Just Pressed: %s",
-      getAppState()->inputSystem->isKeyJustPressed(SDLK_F3) ? "YES" : "NO");
+  ImGui::Spacing();
+  ImGui::SeparatorText("Input States");
   ImGui::Text(
       "Left Mouse: %s",
       getAppState()->inputSystem->isMouseButtonPressed(1) ? "YES" : "NO");
-  ImGui::Text(
-      "Left Mouse Just Pressed: %s",
-      getAppState()->inputSystem->isMouseButtonJustPressed(1) ? "YES" : "NO");
+
+  ImGui::Spacing();
+  ImGui::SeparatorText("Entity Creation");
 
   if (ImGui::Button("Add Random Line")) {
     int windowWidth, windowHeight;
