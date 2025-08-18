@@ -39,14 +39,14 @@ class IsometricCubeEntity : public Entity,
     return typeId;
   }
 
-  void setTime(const float newTime) {
-    time = newTime;
-  }
+  void setTime(const float newTime) { time = newTime; }
 
   void setPosition(const SDL_FPoint& position) override {
     current_position = position;
     position0 = {position.x, position.y - wave_dy};
     position1 = {position.x, position.y + wave_dy};
+    // Depth-sort by screen y so items higher on screen (smaller y) render first
+    setZOrder(current_position.y);
   }
 
   SDL_FPoint getPosition() const override { return current_position; }
@@ -59,8 +59,8 @@ class IsometricCubeEntity : public Entity,
   SDL_FPoint getBehindLeft() {
     SDL_FPoint pos = this->current_position;
 
-    float x = pos.x + size;
-    float y = pos.y + size / 2;
+    float x = pos.x - size;
+    float y = pos.y - size / 2;
 
     return {x, y};
   }
@@ -86,8 +86,8 @@ class IsometricCubeEntity : public Entity,
   SDL_FPoint getFrontRight() {
     SDL_FPoint pos = this->current_position;
 
-    float x = pos.x - size;
-    float y = pos.y - size / 2;
+    float x = pos.x + size;
+    float y = pos.y + size / 2;
 
     return {x, y};
   }

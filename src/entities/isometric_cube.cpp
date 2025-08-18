@@ -7,19 +7,7 @@
 #include "SDL3/SDL_rect.h"
 #include "SDL3/SDL_render.h"
 
-// const int LINE_COUNT = 11;
-// SDL_FPoint lines[LINE_COUNT] = {{x, y},
-//                                 {x - size, y - halfsize},
-//                                 {x - size, y - size - halfsize},
-//                                 {x, y - size},
-//                                 {x, y},
-//                                 {x + size, y - halfsize},
-//                                 {x + size, y - size - halfsize},
-//                                 {x, y - size},
-//                                 {x + size, y - size - halfsize},
-//                                 {x, y - size * 2},
-//                                 {x - size, y - size - halfsize}};
-// SDL_RenderLines(renderer, lines, LINE_COUNT);
+const int LINE_COUNT = 11;
 
 static const int INDICES_LENGTH = 6;
 static const int INDICES[INDICES_LENGTH] = {0, 1, 2, 0, 2, 3};
@@ -70,6 +58,20 @@ void IsometricCubeEntity::render(SDL_Renderer* renderer) {
                                            {x + size, y - size - halfsize},
                                            {x + size, y - halfsize}};
   renderQuadGeometry(renderer, rightPoints, color);
+
+  SDL_FPoint lines[LINE_COUNT] = {{x, y},
+                                  {x - size, y - halfsize},
+                                  {x - size, y - size - halfsize},
+                                  {x, y - size},
+                                  {x, y},
+                                  {x + size, y - halfsize},
+                                  {x + size, y - size - halfsize},
+                                  {x, y - size},
+                                  {x + size, y - size - halfsize},
+                                  {x, y - size * 2},
+                                  {x - size, y - size - halfsize}};
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+  SDL_RenderLines(renderer, lines, LINE_COUNT);
 }
 
 void IsometricCubeEntity::update(float deltaTime) {

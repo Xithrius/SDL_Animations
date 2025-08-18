@@ -264,21 +264,70 @@ void DebugUI::renderEntityCreation() {
     cube->setPosition(SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f});
   }
 
-  if (ImGui::Button("Create 4x4 Isometric Grid of Cubes")) {
+  if (ImGui::Button("Create Isometric Grid Wave")) {
     int windowWidth, windowHeight;
     SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
                       &windowHeight);
 
-    SDL_FPoint position = {windowWidth / 2.0f, windowHeight / 2.0f};
+    SDL_FPoint center = {
+        windowWidth / 2.0f,
+        // windowHeight / 2.0f,
+        static_cast<float>(windowHeight + (windowHeight / 2.0f)),
+    };
+    SDL_FPoint rowStart = center;
+    // int side = 8;
+    int side = 64;
 
-    for (int i = 0; i < 16; i++) {
-      auto cube =
+    for (int r = 0; r < side; r++) {
+      auto* first =
           getAppState()->entityManager.createEntity<IsometricCubeEntity>(
               getAppState());
-      cube->setTime(i * 50.0f);
-      cube->setPosition(position);
-      position = cube->getBehindLeft();
+      first->setTime(r * 75.0f);
+      first->setPosition(rowStart);
+
+      SDL_FPoint colPos = first->getBehindLeft();
+      for (int c = 1; c < side; c++) {
+        auto* cube =
+            getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+                getAppState());
+        cube->setTime((r + c) * 75.0f);
+        cube->setPosition(colPos);
+        colPos = cube->getBehindLeft();
+      }
+
+      rowStart = first->getBehindRight();
     }
+  }
+
+  if (ImGui::Button("Test isometric cube positions")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    SDL_FPoint center = {windowWidth / 2.0f, windowHeight / 2.0f};
+
+    // Center
+    auto center_cube =
+        getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+            getAppState());
+    center_cube->setPosition(center);
+
+    // Left behind
+    auto cube = getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+        getAppState());
+    cube->setPosition(center_cube->getBehindLeft());
+    // Right behind
+    cube = getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+        getAppState());
+    cube->setPosition(center_cube->getBehindRight());
+    // Left Front
+    cube = getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+        getAppState());
+    cube->setPosition(center_cube->getFrontLeft());
+    // Right Front
+    cube = getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+        getAppState());
+    cube->setPosition(center_cube->getFrontRight());
   }
 }
 
