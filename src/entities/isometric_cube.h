@@ -15,6 +15,11 @@ class IsometricCubeEntity : public Entity,
 
   SDL_FPoint current_position = {0, 0};
 
+  SDL_FPoint position0;
+  SDL_FPoint position1;
+
+  float wave_dy = 25.0f;
+
   float size = 50.0f;
 
   float movementSpeed = 2.0f;
@@ -34,8 +39,14 @@ class IsometricCubeEntity : public Entity,
     return typeId;
   }
 
+  void setTime(const float newTime) {
+    time = newTime;
+  }
+
   void setPosition(const SDL_FPoint& position) override {
     current_position = position;
+    position0 = {position.x, position.y - wave_dy};
+    position1 = {position.x, position.y + wave_dy};
   }
 
   SDL_FPoint getPosition() const override { return current_position; }
