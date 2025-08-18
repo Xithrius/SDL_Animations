@@ -13,6 +13,9 @@
 
 void DebugUI::renderDebugControls() {
   ImGui::Checkbox("Debug Frames", &this->debugFrames);
+  ImGui::BeginDisabled(!this->debugFrames);
+  ImGui::Checkbox("Debug Text", &this->debugFramesText);
+  ImGui::EndDisabled();
 
   ImGui::Spacing();
   ImGui::SeparatorText("Line Rotation Controls");

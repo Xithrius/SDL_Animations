@@ -142,8 +142,9 @@ void EventLoop::renderDebugFrames() {
       // Draw the debug frame rectangle
       SDL_RenderRect(this->appState->context->renderer, &debugRect);
 
-      // Render debug information above the bounding box
-      renderDebugInfo(entity);
+      if (this->ui->debug.isDebugFramesTextEnabled()) {
+        renderDebugInfo(entity);
+      }
     }
   }
 }

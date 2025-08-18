@@ -13,6 +13,7 @@ class DebugUI : public UIComponent {
   bool visible = false;
   bool entitySystemDemo = false;
   bool debugFrames = false;
+  bool debugFramesText = false;
 
   void renderDebugControls();
   void renderDebugInformation();
@@ -30,4 +31,6 @@ class DebugUI : public UIComponent {
   bool isVisible() const { return visible; }
 
   bool isDebugFramesEnabled() const { return debugFrames; }
+
+  bool isDebugFramesTextEnabled() const { return debugFramesText; }
 };
