@@ -2,6 +2,8 @@
 
 #include "SDL3/SDL_render.h"
 
+const int LINE_COUNT = 11;
+
 void IsometricCubeEntity::render(SDL_Renderer* renderer) {
   if (!visible) return;
 
@@ -11,32 +13,17 @@ void IsometricCubeEntity::render(SDL_Renderer* renderer) {
   float y = current_position.y;
   float halfsize = size / 2.0f;
 
-  // Left line
-  SDL_RenderLine(renderer, x - size, y - halfsize, x - size,
-                 y - halfsize - size);
+  SDL_FPoint lines[LINE_COUNT] = {{x, y},
+                                  {x - size, y - halfsize},
+                                  {x - size, y - size - halfsize},
+                                  {x, y - size},
+                                  {x, y},
+                                  {x + size, y - halfsize},
+                                  {x + size, y - size - halfsize},
+                                  {x, y - size},
+                                  {x + size, y - size - halfsize},
+                                  {x, y - size * 2},
+                                  {x - size, y - size - halfsize}};
 
-  // Middle line
-  SDL_RenderLine(renderer, x, y, x, y - size);
-
-  // Right line
-  SDL_RenderLine(renderer, x + size, y - halfsize, x + size,
-                 y - halfsize - size);
-
-  // Top of middle to top of left
-  SDL_RenderLine(renderer, x, y - size, x - size, y - halfsize - size);
-
-  // Top of middle to top of right
-  SDL_RenderLine(renderer, x, y - size, x + size, y - halfsize - size);
-
-  // Bottom of middle to Bottom of left
-  SDL_RenderLine(renderer, x, y, x - size, y - halfsize);
-
-  // Bottom of middle to Bottom of right
-  SDL_RenderLine(renderer, x, y, x + size, y - halfsize);
-
-  // Top of left to above middle line
-  SDL_RenderLine(renderer, x - size, y - halfsize - size, x, y - size * 2);
-
-  // Top of right to above middle line
-  SDL_RenderLine(renderer, x + size, y - halfsize - size, x, y - size * 2);
+  SDL_RenderLines(renderer, lines, LINE_COUNT);
 }
