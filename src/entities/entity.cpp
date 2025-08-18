@@ -6,7 +6,7 @@
 
 #include "core/app_state.h"
 
-// Initialize static members
+// TODO: NO GLOBALS
 std::unordered_map<std::string, uint32_t> EntityTypeRegistry::typeMap;
 std::vector<std::string> EntityTypeRegistry::typeNames;
 uint32_t EntityTypeRegistry::nextTypeId = 0;

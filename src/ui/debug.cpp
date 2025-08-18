@@ -1,6 +1,7 @@
 #include "debug.h"
 
 #include "entities/circle.h"
+#include "entities/isometric_cube.h"
 #include "entities/line.h"
 #include "entities/rectangle.h"
 #include "entities/triangle.h"
@@ -247,6 +248,16 @@ void DebugUI::renderEntityCreation() {
               getAppState());
       waypoint->setInitialPosition(windowWidth / 2.0f, windowHeight / 2.0f);
     }
+  }
+
+  if (ImGui::Button("Create Isometric Cube")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    auto cube = getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+        getAppState());
+    cube->setPosition(SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f});
   }
 }
 

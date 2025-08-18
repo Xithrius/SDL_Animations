@@ -10,7 +10,6 @@ class AppState;
 class IsometricCubeEntity : public Entity,
                             public IPositionable,
                             public IUpdatable {
- public:
  private:
   AppState* appState;
 
@@ -18,7 +17,7 @@ class IsometricCubeEntity : public Entity,
   float size = 100.0f;
 
  public:
-  IsometricCubeEntity(AppState* appState);
+  IsometricCubeEntity(AppState* appState) : appState(appState) {}
 
   void update(float) override {}
 
@@ -36,4 +35,9 @@ class IsometricCubeEntity : public Entity,
   }
 
   SDL_FPoint getPosition() const override { return current_position; }
+
+  BoundingBox getBoundingBox() const override {
+    return BoundingBox(current_position.x - size, current_position.y - size * 2,
+                       current_position.x + size, current_position.y);
+  }
 };
