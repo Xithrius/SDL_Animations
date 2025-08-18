@@ -9,7 +9,7 @@
 #include "systems/animation_system.h"
 #include "systems/input_system.h"
 
-void DebugUI::mainOptions() {
+void DebugUI::renderDebugControls() {
   ImGui::Checkbox("Debug Frames", &this->debugFrames);
 
   ImGui::Spacing();
@@ -49,14 +49,7 @@ void DebugUI::mainOptions() {
   }
 }
 
-void DebugUI::render() {
-  if (!this->visible) return;
-
-  ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_FirstUseEver);
-  ImGui::Begin("Debug Panel", &this->visible);
-
-  this->mainOptions();
-
+void DebugUI::renderDebugInformation() {
   ImGui::Spacing();
   ImGui::SeparatorText("Debug Information");
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
@@ -67,7 +60,9 @@ void DebugUI::render() {
   ImGui::SeparatorText("Entity System");
   ImGui::Text("Entity Count: %zu",
               getAppState()->entityManager.getEntityCount());
+}
 
+void DebugUI::renderInputStates() {
   // Show drag state information
   if (getAppState()->inputSystem->isDraggingEntity()) {
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dragging: YES");
@@ -89,7 +84,9 @@ void DebugUI::render() {
   ImGui::Text(
       "Left Mouse: %s",
       getAppState()->inputSystem->isMouseButtonPressed(1) ? "YES" : "NO");
+}
 
+void DebugUI::renderEntityCreation() {
   ImGui::Spacing();
   ImGui::SeparatorText("Entity Creation");
 
@@ -251,7 +248,9 @@ void DebugUI::render() {
       waypoint->setInitialPosition(windowWidth / 2.0f, windowHeight / 2.0f);
     }
   }
+}
 
+void DebugUI::renderEntityManagement() {
   if (ImGui::Button("Regenerate Waypoint Positions")) {
     // Find all waypoint entities and regenerate their random positions
     auto entities = getAppState()->entityManager.getAllEntities();
@@ -303,6 +302,20 @@ void DebugUI::render() {
   if (ImGui::Button("Clear All Entities")) {
     getAppState()->entityManager.clear();
   }
+}
+
+void DebugUI::render() {
+  if (!this->visible) return;
+
+  ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_FirstUseEver);
+  ImGui::Begin("Debug Panel", &this->visible);
+
+  // Render all debug UI sections
+  this->renderDebugControls();
+  this->renderDebugInformation();
+  this->renderInputStates();
+  this->renderEntityCreation();
+  this->renderEntityManagement();
 
   ImGui::End();
 }

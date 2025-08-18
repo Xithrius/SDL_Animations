@@ -14,7 +14,11 @@ class DebugUI : public UIComponent {
   bool entitySystemDemo = false;
   bool debugFrames = false;
 
-  void mainOptions();
+  void renderDebugControls();
+  void renderDebugInformation();
+  void renderInputStates();
+  void renderEntityCreation();
+  void renderEntityManagement();
 
  public:
   DebugUI(AppState* appState, UI* ui) : UIComponent(appState, ui) {}
