@@ -266,14 +266,28 @@ void DebugUI::renderEntityCreation() {
     SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
                       &windowHeight);
 
-    SDL_FPoint position = {windowWidth / 2.0f, windowHeight / 2.0f};
+    SDL_FPoint center = {windowWidth / 2.0f, windowHeight / 2.0f};
+    SDL_FPoint rowStart = center;
 
-    for (int i = 0; i < 4; i++) {
-      auto cube =
+    for (int i = 1; i < 4; i++) {
+      // Create first cube in the row
+      auto* first =
           getAppState()->entityManager.createEntity<IsometricCubeEntity>(
               getAppState());
-      cube->setPosition(position);
-      position = cube->getFrontRight();
+      first->setPosition(rowStart);
+
+      // Fill remaining columns in this row by stepping behind-left
+      SDL_FPoint colPos = first->getFrontRight();
+      for (int j = 1; j < 4; j++) {
+        auto* cube =
+            getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+                getAppState());
+        cube->setPosition(colPos);
+        colPos = cube->getBehindLeft();
+      }
+
+      // Advance to next row by stepping front-right from the first cube
+      rowStart = first->getFrontLeft();
     }
   }
 }

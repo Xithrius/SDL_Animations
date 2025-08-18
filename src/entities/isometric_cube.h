@@ -14,12 +14,16 @@ class IsometricCubeEntity : public Entity,
   AppState* appState;
 
   SDL_FPoint current_position = {0, 0};
+
   float size = 50.0f;
+
+  float movementSpeed = 2.0f;
+  float time = 0.0f;
 
  public:
   IsometricCubeEntity(AppState* appState) : appState(appState) {}
 
-  void update(float) override {}
+  void update(float) override;
 
   void render(SDL_Renderer* renderer) override;
 
@@ -44,8 +48,8 @@ class IsometricCubeEntity : public Entity,
   SDL_FPoint getBehindLeft() {
     SDL_FPoint pos = this->current_position;
 
-    float x = pos.x - size;
-    float y = pos.y - size / 2;
+    float x = pos.x + size;
+    float y = pos.y + size / 2;
 
     return {x, y};
   }
@@ -71,8 +75,8 @@ class IsometricCubeEntity : public Entity,
   SDL_FPoint getFrontRight() {
     SDL_FPoint pos = this->current_position;
 
-    float x = pos.x + size;
-    float y = pos.y + size / 2;
+    float x = pos.x - size;
+    float y = pos.y - size / 2;
 
     return {x, y};
   }
