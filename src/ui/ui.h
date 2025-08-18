@@ -8,8 +8,8 @@
 #include "core/app_state.h"
 #include "entities/entity.h"
 #include "ui/debug.h"
+#include "ui/settings.h"
 
-// Forward declaration to avoid circular dependency
 class EventLoop;
 
 static ImVec4 CLEAR_COLOR = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
@@ -21,19 +21,18 @@ class UI {
 
  public:
   DebugUI debug;
+  SettingsUI settings;
 
   UI(AppState* appState, EventLoop* eventLoop)
-      : appState(appState), eventLoop(eventLoop), debug(appState, this) {}
+      : appState(appState),
+        eventLoop(eventLoop),
+        debug(appState, this),
+        settings(appState, this) {}
 
   ~UI() = default;
 
   void render();
 
-  void renderDebugFrames();
-
-  std::vector<std::string> getDebugText(Entity* entity);
-
-  void renderDebugInfo(Entity* entity);
   void createDemoEntities();
 
   EventLoop* getEventLoop() const { return eventLoop; }

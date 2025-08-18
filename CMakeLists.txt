@@ -47,6 +47,8 @@ set(SOURCES
     src/ui/debug.cpp
     src/graphics/embedded_fonts/space_mono_regular.h
     src/utils/uuid.cpp
+    src/entities/isometric_cube.cpp
+    src/ui/settings.cpp
 
     # ImGui core files
     lib/imgui/imgui.cpp

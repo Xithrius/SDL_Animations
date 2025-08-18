@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <memory>
 #include <vector>
 
 #include "context.h"
@@ -10,7 +11,6 @@
 #include "graphics/renderer.h"
 #include "imgui.h"
 
-// Forward declarations
 class InputSystem;
 class AnimationSystem;
 
@@ -28,8 +28,8 @@ class AppState {
   ImGuiIO* io;
 
   EntityManager entityManager;
-  InputSystem* inputSystem;
-  AnimationSystem* animationSystem;
+  std::unique_ptr<InputSystem> inputSystem;
+  std::unique_ptr<AnimationSystem> animationSystem;
 
   AppState(Context* context);
   ~AppState();

@@ -5,47 +5,12 @@
 #include "entities/rectangle.h"
 #include "entities/triangle.h"
 #include "entities/waypoint.h"
-#include "event_loop.h"
 #include "imgui.h"
 #include "systems/animation_system.h"
 #include "systems/input_system.h"
-#include "ui/ui.h"
 
-void DebugUI::debugOptions() {
+void DebugUI::mainOptions() {
   ImGui::Checkbox("Debug Frames", &this->debugFrames);
-  if (this->debugFrames) {
-  }
-
-  ImGui::Spacing();
-  ImGui::SeparatorText("Framerate Controls");
-
-  float targetFPS = getUI()->getEventLoop()->getTargetFPS();
-
-  if (ImGui::SliderFloat("Target FPS", &targetFPS, 0.0f, 240.0f, "%.0f")) {
-    getUI()->getEventLoop()->setTargetFPS(targetFPS);
-  }
-
-  ImGui::Text("Current FPS: %.1f", this->getAppState()->io->Framerate);
-
-  if (ImGui::Button("30 FPS")) {
-    targetFPS = 30.0f;
-    getUI()->getEventLoop()->setTargetFPS(targetFPS);
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("60 FPS")) {
-    targetFPS = 60.0f;
-    getUI()->getEventLoop()->setTargetFPS(targetFPS);
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("120 FPS")) {
-    targetFPS = 120.0f;
-    getUI()->getEventLoop()->setTargetFPS(targetFPS);
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Unlimited")) {
-    targetFPS = 0.0f;
-    getUI()->getEventLoop()->setTargetFPS(targetFPS);
-  }
 
   ImGui::Spacing();
   ImGui::SeparatorText("Line Rotation Controls");
@@ -87,11 +52,13 @@ void DebugUI::debugOptions() {
 void DebugUI::render() {
   if (!this->visible) return;
 
-  ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-  ImGui::Begin("Settings", &this->visible);
+  ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_FirstUseEver);
+  ImGui::Begin("Debug Panel", &this->visible);
 
-  this->debugOptions();
+  this->mainOptions();
 
+  ImGui::Spacing();
+  ImGui::SeparatorText("Debug Information");
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
               1000.0f / getAppState()->io->Framerate,
               getAppState()->io->Framerate);

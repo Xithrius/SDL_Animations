@@ -3,9 +3,12 @@
 #include <SDL3/SDL.h>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "core/app_state.h"
 #include "core/context.h"
+#include "entities/entity.h"
 #include "ui/ui.h"
 
 class EventLoop {
@@ -48,4 +51,8 @@ class EventLoop {
   void HandleInputEvents();
   void updateEvents(float deltaTime);
   void updateFPS(float deltaTime);
+  void render();
+  void renderDebugFrames();
+  void renderDebugInfo(Entity* entity);
+  std::vector<std::string> getDebugText(Entity* entity);
 };

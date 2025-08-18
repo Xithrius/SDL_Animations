@@ -5,10 +5,7 @@
 CircleEntity::CircleEntity(const SDL_FPoint& center, float radius)
     : center(center), radius(radius) {}
 
-void CircleEntity::update(float deltaTime) {
-  // Circles can optionally implement update logic here
-  // For now, we'll leave it empty since most circles don't need updates
-}
+void CircleEntity::update(float) {}
 
 void CircleEntity::render(SDL_Renderer* renderer) {
   if (!visible) return;

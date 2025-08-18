@@ -8,16 +8,16 @@
 #include "core/app_state.h"
 #include "ui/ui_component.h"
 
-class DebugUI : public UIComponent {
+class SettingsUI : public UIComponent {
  private:
   bool visible = false;
   bool entitySystemDemo = false;
   bool debugFrames = false;
 
-  void mainOptions();
+  void MainOptions();
 
  public:
-  DebugUI(AppState* appState, UI* ui) : UIComponent(appState, ui) {}
+  SettingsUI(AppState* appState, UI* ui) : UIComponent(appState, ui) {}
 
   void render() override;
 

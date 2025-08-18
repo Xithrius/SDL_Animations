@@ -9,11 +9,10 @@
 #include "systems/input_system.h"
 
 AppState::AppState(Context* context) : context(context), entityManager(this) {
-  inputSystem = new InputSystem(this);
-  animationSystem = new AnimationSystem(this);
+  inputSystem = std::make_unique<InputSystem>(this);
+  animationSystem = std::make_unique<AnimationSystem>(this);
   font.loadFont();
 
-  // Set up the renderer with the loaded font
   renderer.setRenderer(context->renderer);
   renderer.setFont(std::shared_ptr<TTF_Font>(
       font.get(),
@@ -44,8 +43,6 @@ AppState::AppState(Context* context) : context(context), entityManager(this) {
 }
 
 AppState::~AppState() {
-  delete inputSystem;
-  delete animationSystem;
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();

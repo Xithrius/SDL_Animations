@@ -6,10 +6,7 @@ TriangleEntity::TriangleEntity(const SDL_FPoint& p1, const SDL_FPoint& p2,
                                const SDL_FPoint& p3)
     : point1(p1), point2(p2), point3(p3) {}
 
-void TriangleEntity::update(float deltaTime) {
-  // Triangles can optionally implement update logic here
-  // For now, we'll leave it empty since most triangles don't need updates
-}
+void TriangleEntity::update(float) {}
 
 void TriangleEntity::render(SDL_Renderer* renderer) {
   if (!visible) return;
