@@ -14,7 +14,7 @@ class IsometricCubeEntity : public Entity,
   AppState* appState;
 
   SDL_FPoint current_position = {0, 0};
-  float size = 100.0f;
+  float size = 50.0f;
 
  public:
   IsometricCubeEntity(AppState* appState) : appState(appState) {}
@@ -39,5 +39,41 @@ class IsometricCubeEntity : public Entity,
   BoundingBox getBoundingBox() const override {
     return BoundingBox(current_position.x - size, current_position.y - size * 2,
                        current_position.x + size, current_position.y);
+  }
+
+  SDL_FPoint getBehindLeft() {
+    SDL_FPoint pos = this->current_position;
+
+    float x = pos.x - size;
+    float y = pos.y - size / 2;
+
+    return {x, y};
+  }
+
+  SDL_FPoint getBehindRight() {
+    SDL_FPoint pos = this->current_position;
+
+    float x = pos.x + size;
+    float y = pos.y - size / 2;
+
+    return {x, y};
+  }
+
+  SDL_FPoint getFrontLeft() {
+    SDL_FPoint pos = this->current_position;
+
+    float x = pos.x - size;
+    float y = pos.y + size / 2;
+
+    return {x, y};
+  }
+
+  SDL_FPoint getFrontRight() {
+    SDL_FPoint pos = this->current_position;
+
+    float x = pos.x + size;
+    float y = pos.y + size / 2;
+
+    return {x, y};
   }
 };

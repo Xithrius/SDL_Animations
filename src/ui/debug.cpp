@@ -1,5 +1,6 @@
 #include "debug.h"
 
+#include "SDL3/SDL_rect.h"
 #include "entities/circle.h"
 #include "entities/isometric_cube.h"
 #include "entities/line.h"
@@ -258,6 +259,22 @@ void DebugUI::renderEntityCreation() {
     auto cube = getAppState()->entityManager.createEntity<IsometricCubeEntity>(
         getAppState());
     cube->setPosition(SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f});
+  }
+
+  if (ImGui::Button("Create 4x4 Isometric Grid of Cubes")) {
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
+                      &windowHeight);
+
+    SDL_FPoint position = {windowWidth / 2.0f, windowHeight / 2.0f};
+
+    for (int i = 0; i < 4; i++) {
+      auto cube =
+          getAppState()->entityManager.createEntity<IsometricCubeEntity>(
+              getAppState());
+      cube->setPosition(position);
+      position = cube->getFrontRight();
+    }
   }
 }
 
