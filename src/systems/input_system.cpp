@@ -145,8 +145,6 @@ void InputSystem::startDrag(Entity* entity) {
 
   dragOffset.x = mousePosition.x - entityCenter.x;
   dragOffset.y = mousePosition.y - entityCenter.y;
-
-  spdlog::debug("Started dragging entity: {}", entity->getUUID());
 }
 
 void InputSystem::updateDrag() {
@@ -169,8 +167,6 @@ void InputSystem::endDrag() {
     if (auto* interactive = draggedEntity->asInteractive()) {
       interactive->onDragEnd();
     }
-
-    spdlog::debug("Ended dragging entity: {}", draggedEntity->getUUID());
   }
 
   isDragging = false;

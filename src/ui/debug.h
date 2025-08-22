@@ -15,8 +15,8 @@ class DebugUI : public UIComponent {
   bool debugFrames = false;
   bool debugFramesText = false;
 
-  void renderDebugControls();
-  void renderDebugInformation();
+  void renderDebugFrameControls();
+  void renderDebugFramerateInformation();
   void renderInputStates();
   void renderEntityCreation();
   void renderEntityManagement();

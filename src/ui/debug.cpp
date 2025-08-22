@@ -11,50 +11,14 @@
 #include "systems/animation_system.h"
 #include "systems/input_system.h"
 
-void DebugUI::renderDebugControls() {
+void DebugUI::renderDebugFrameControls() {
   ImGui::Checkbox("Debug Frames", &this->debugFrames);
   ImGui::BeginDisabled(!this->debugFrames);
   ImGui::Checkbox("Debug Text", &this->debugFramesText);
   ImGui::EndDisabled();
-
-  ImGui::Spacing();
-  ImGui::SeparatorText("Line Rotation Controls");
-
-  static float rotationSpeed = 1.0f;
-  if (ImGui::SliderFloat("Rotation Speed", &rotationSpeed, 0.0f, 5.0f)) {
-    // Update rotation speed for all line entities
-    auto lines = getAppState()->entityManager.getEntitiesOfType<LineEntity>();
-    for (auto* line : lines) {
-      line->setRotationSpeed(rotationSpeed);
-    }
-  }
-
-  if (ImGui::Button("Create Spinning Line")) {
-    int windowWidth, windowHeight;
-    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
-                      &windowHeight);
-
-    // Create a line at the center of the screen
-    SDL_FPoint center = {static_cast<float>(windowWidth) / 2.0f,
-                         static_cast<float>(windowHeight) / 2.0f};
-    SDL_FPoint start = {center.x - 50.0f, center.y};
-    SDL_FPoint end = {center.x + 50.0f, center.y};
-
-    auto* line =
-        getAppState()->entityManager.createEntity<LineEntity>(start, end);
-    line->setRotationSpeed(rotationSpeed);
-    line->setThickness(3.0f);
-
-    // Set gradient properties for visual appeal
-    LineEntity::GradientProperties gradientProps;
-    gradientProps.enabled = true;
-    gradientProps.startColor = {255, 0, 0, 255};  // Red
-    gradientProps.endColor = {0, 0, 255, 255};    // Blue
-    line->setGradientProperties(gradientProps);
-  }
 }
 
-void DebugUI::renderDebugInformation() {
+void DebugUI::renderDebugFramerateInformation() {
   ImGui::Spacing();
   ImGui::SeparatorText("Debug Information");
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
@@ -68,16 +32,13 @@ void DebugUI::renderDebugInformation() {
 }
 
 void DebugUI::renderInputStates() {
-  // Show drag state information
-  if (getAppState()->inputSystem->isDraggingEntity()) {
-    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Dragging: YES");
-    Entity* draggedEntity = getAppState()->inputSystem->getDraggedEntity();
-    if (draggedEntity) {
-      ImGui::Text("Dragged Entity: %s", draggedEntity->getUUID().c_str());
-    }
-  } else {
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Dragging: NO");
-  }
+  bool draggingEntity = getAppState()->inputSystem->isDraggingEntity();
+  Entity* draggedEntity = getAppState()->inputSystem->getDraggedEntity();
+  ImVec4 draggingColor = draggingEntity ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f)
+                                        : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+  ImGui::TextColored(
+      draggingColor, "Dragged Entity: %s",
+      draggingEntity ? draggedEntity->getUUID().c_str() : "None");
 
   ImGui::Text("Mouse Position: (%.1f, %.1f)",
               getAppState()->inputSystem->getMousePosition().x,
@@ -129,57 +90,6 @@ void DebugUI::renderEntityCreation() {
     circle->setFilled(SDL_randf() > 0.5f);
   }
 
-  if (ImGui::Button("Create Draggable Test Entities")) {
-    int windowWidth, windowHeight;
-    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
-                      &windowHeight);
-
-    // Create a red circle for dragging
-    auto* circle = getAppState()->entityManager.createEntity<CircleEntity>(
-        SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f}, 30.0f);
-    circle->setColor({255, 0, 0, 255});  // Red
-    circle->setFilled(true);
-
-    // Create a blue rectangle for dragging
-    auto* rect = getAppState()->entityManager.createEntity<RectangleEntity>(
-        SDL_FRect{windowWidth / 2.0f - 40.0f, windowHeight / 2.0f - 40.0f,
-                  80.0f, 80.0f});
-    rect->setColor({0, 0, 255, 255});  // Blue
-    rect->setFilled(true);
-
-    // Create a green triangle for dragging
-    auto* triangle = getAppState()->entityManager.createEntity<TriangleEntity>(
-        SDL_FPoint{windowWidth / 2.0f - 50.0f, windowHeight / 2.0f + 50.0f},
-        SDL_FPoint{windowWidth / 2.0f + 50.0f, windowHeight / 2.0f + 50.0f},
-        SDL_FPoint{windowWidth / 2.0f, windowHeight / 2.0f + 100.0f});
-    triangle->setColor({0, 255, 0, 255});  // Green
-    triangle->setFilled(true);
-  }
-
-  if (ImGui::Button("Create Non-Draggable Text")) {
-    int windowWidth, windowHeight;
-    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
-                      &windowHeight);
-  }
-
-  if (ImGui::Button("Create Rotating Line")) {
-    int windowWidth, windowHeight;
-    SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
-                      &windowHeight);
-
-    // Create a line that rotates and can be dragged
-    SDL_FPoint center = {static_cast<float>(windowWidth) / 2.0f,
-                         static_cast<float>(windowHeight) / 2.0f};
-    SDL_FPoint start = {center.x - 50.0f, center.y};
-    SDL_FPoint end = {center.x + 50.0f, center.y};
-
-    auto* line =
-        getAppState()->entityManager.createEntity<LineEntity>(start, end);
-    line->setRotationSpeed(2.0f);  // Rotate at 2 radians per second
-    line->setThickness(3.0f);
-    line->setColor({255, 0, 255, 255});  // Magenta
-  }
-
   if (ImGui::Button("Create Animated Gradient Line")) {
     int windowWidth, windowHeight;
     SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
@@ -223,12 +133,11 @@ void DebugUI::renderEntityCreation() {
     SDL_GetWindowSize(getAppState()->context->window, &windowWidth,
                       &windowHeight);
 
-    // Create a circle that cannot be dragged
     auto* circle = getAppState()->entityManager.createEntity<CircleEntity>(
         SDL_FPoint{windowWidth / 2.0f + 100.0f, windowHeight / 2.0f}, 25.0f);
     circle->setColor({128, 128, 128, 255});  // Gray
     circle->setFilled(true);
-    circle->setDraggable(false);  // Disable dragging
+    circle->setDraggable(false);
   }
 
   if (ImGui::Button("Create Waypoint")) {
@@ -270,13 +179,12 @@ void DebugUI::renderEntityCreation() {
                       &windowHeight);
 
     SDL_FPoint center = {
-        windowWidth / 2.0f,
-        // windowHeight / 2.0f,
-        static_cast<float>(windowHeight + (windowHeight / 2.0f)),
+        windowWidth / 2.0f, windowHeight / 2.0f,
+        // static_cast<float>(windowHeight + (windowHeight / 2.0f)),
     };
     SDL_FPoint rowStart = center;
-    // int side = 8;
-    int side = 64;
+    int side = 8;
+    // int side = 64;
 
     for (int r = 0; r < side; r++) {
       auto* first =
@@ -332,54 +240,6 @@ void DebugUI::renderEntityCreation() {
 }
 
 void DebugUI::renderEntityManagement() {
-  if (ImGui::Button("Regenerate Waypoint Positions")) {
-    // Find all waypoint entities and regenerate their random positions
-    auto entities = getAppState()->entityManager.getAllEntities();
-    for (auto* entity : entities) {
-      if (auto* waypoint = dynamic_cast<WaypointEntity*>(entity)) {
-        waypoint->regenerateRandomPosition();
-      }
-    }
-  }
-
-  if (ImGui::Button("Change Waypoint Speed")) {
-    // Change movement speed for all waypoints
-    auto entities = getAppState()->entityManager.getAllEntities();
-    for (auto* entity : entities) {
-      if (auto* waypoint = dynamic_cast<WaypointEntity*>(entity)) {
-        // Cycle through different speeds: 0.5, 1.0, 2.0, 5.0
-        float currentSpeed = waypoint->getMovementSpeed();
-        if (currentSpeed < 0.5f)
-          waypoint->setMovementSpeed(0.5f);
-        else if (currentSpeed < 1.0f)
-          waypoint->setMovementSpeed(1.0f);
-        else if (currentSpeed < 2.0f)
-          waypoint->setMovementSpeed(2.0f);
-        else if (currentSpeed < 5.0f)
-          waypoint->setMovementSpeed(5.0f);
-        else
-          waypoint->setMovementSpeed(0.5f);
-      }
-    }
-  }
-
-  if (ImGui::Button("Print Waypoint Positions")) {
-    // Print current positions of all waypoints
-    auto entities = getAppState()->entityManager.getAllEntities();
-    int waypointCount = 0;
-    for (auto* entity : entities) {
-      if (auto* waypoint = dynamic_cast<WaypointEntity*>(entity)) {
-        waypointCount++;
-        spdlog::info("Waypoint {}: current=({:.1f}, {:.1f})", waypointCount,
-                     waypoint->getCurrentPosition().x,
-                     waypoint->getCurrentPosition().y);
-      }
-    }
-    if (waypointCount == 0) {
-      spdlog::info("No waypoints found");
-    }
-  }
-
   if (ImGui::Button("Clear All Entities")) {
     getAppState()->entityManager.clear();
   }
@@ -391,9 +251,8 @@ void DebugUI::render() {
   ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_FirstUseEver);
   ImGui::Begin("Debug Panel", &this->visible);
 
-  // Render all debug UI sections
-  this->renderDebugControls();
-  this->renderDebugInformation();
+  this->renderDebugFrameControls();
+  this->renderDebugFramerateInformation();
   this->renderInputStates();
   this->renderEntityCreation();
   this->renderEntityManagement();
