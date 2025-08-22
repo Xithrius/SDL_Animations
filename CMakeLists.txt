@@ -47,7 +47,10 @@ set(SOURCES
     src/ui/debug.cpp
     src/graphics/embedded_fonts/space_mono_regular.h
     src/utils/uuid.cpp
-    src/entities/isometric_cube.cpp
+    src/entities/utils/quad_geometry.cpp
+    src/entities/isometric_cube/isometric_cube_update_impl.cpp
+    src/entities/isometric_cube/isometric_cube_render_impl.cpp
+    src/entities/isometric_cube/isometric_cube_pos_impl.cpp
     src/ui/settings.cpp
 
     # ImGui core files

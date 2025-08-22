@@ -2,10 +2,8 @@
 
 #include "SDL3/SDL_rect.h"
 #include "entities/circle.h"
-#include "entities/isometric_cube.h"
+#include "entities/isometric_cube/isometric_cube.h"
 #include "entities/line.h"
-#include "entities/rectangle.h"
-#include "entities/triangle.h"
 #include "entities/waypoint.h"
 #include "imgui.h"
 #include "systems/animation_system.h"
