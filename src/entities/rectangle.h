@@ -23,7 +23,8 @@ class RectangleEntity : public Entity,
 
   // Entity type identification
   EntityType getEntityType() const override {
-    static EntityType typeId = EntityTypeRegistry::registerType("Rectangle");
+    static EntityType typeId =
+        EntityTypeRegistry::getInstance().registerType("Rectangle");
     return typeId;
   }
 

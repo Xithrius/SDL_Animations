@@ -18,18 +18,30 @@ struct BoundingBox {
       : minX(minX), minY(minY), maxX(maxX), maxY(maxY) {}
 };
 
-// Entity type registration system - no need to modify this file for new
-// entities
+// Entity type registration system - singleton pattern to avoid globals
 class EntityTypeRegistry {
  private:
-  static std::unordered_map<std::string, uint32_t> typeMap;
-  static std::vector<std::string> typeNames;
-  static uint32_t nextTypeId;
+  std::unordered_map<std::string, uint32_t> typeMap;
+  std::vector<std::string> typeNames;
+  uint32_t nextTypeId = 0;
+
+  // Private constructor for singleton
+  EntityTypeRegistry() = default;
 
  public:
-  static uint32_t registerType(const std::string& typeName);
-  static std::string getTypeName(uint32_t typeId);
-  static uint32_t getTypeId(const std::string& typeName);
+  // Singleton instance
+  static EntityTypeRegistry& getInstance() {
+    static EntityTypeRegistry instance;
+    return instance;
+  }
+
+  // Delete copy constructor and assignment operator
+  EntityTypeRegistry(const EntityTypeRegistry&) = delete;
+  EntityTypeRegistry& operator=(const EntityTypeRegistry&) = delete;
+
+  uint32_t registerType(const std::string& typeName);
+  std::string getTypeName(uint32_t typeId) const;
+  uint32_t getTypeId(const std::string& typeName) const;
 };
 
 // EntityType is now just a uint32_t for efficiency

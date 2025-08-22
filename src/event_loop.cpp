@@ -171,8 +171,8 @@ std::vector<std::string> EventLoop::getDebugText(Entity* entity) {
   debugText.push_back("UUID: " + entity->getUUID());
   debugText.push_back("Pos: (" + std::to_string(static_cast<int>(bbox.minX)) +
                       ", " + std::to_string(static_cast<int>(bbox.minY)) + ")");
-  debugText.push_back("Type: " +
-                      EntityTypeRegistry::getTypeName(entity->getEntityType()));
+  debugText.push_back("Type: " + EntityTypeRegistry::getInstance().getTypeName(
+                                     entity->getEntityType()));
   debugText.push_back(
       "Size: " + std::to_string(static_cast<int>(bbox.maxX - bbox.minX)) + "x" +
       std::to_string(static_cast<int>(bbox.maxY - bbox.minY)));

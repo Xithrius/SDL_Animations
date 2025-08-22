@@ -22,7 +22,8 @@ class TriangleEntity : public Entity,
 
   // Entity type identification - automatically registers "Triangle"
   EntityType getEntityType() const override {
-    static EntityType typeId = EntityTypeRegistry::registerType("Triangle");
+    static EntityType typeId =
+        EntityTypeRegistry::getInstance().registerType("Triangle");
     return typeId;
   }
 

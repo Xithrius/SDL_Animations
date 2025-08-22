@@ -35,7 +35,7 @@ class IsometricCubeEntity : public Entity,
   // Entity type identification
   EntityType getEntityType() const override {
     static EntityType typeId =
-        EntityTypeRegistry::registerType("IsometricCube");
+        EntityTypeRegistry::getInstance().registerType("IsometricCube");
     return typeId;
   }
 

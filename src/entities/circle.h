@@ -22,7 +22,8 @@ class CircleEntity : public Entity, public IPositionable, public IInteractive {
 
   // Entity type identification
   EntityType getEntityType() const override {
-    static EntityType typeId = EntityTypeRegistry::registerType("Circle");
+    static EntityType typeId =
+        EntityTypeRegistry::getInstance().registerType("Circle");
     return typeId;
   }
 

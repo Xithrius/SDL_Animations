@@ -6,11 +6,6 @@
 
 #include "core/app_state.h"
 
-// TODO: NO GLOBALS
-std::unordered_map<std::string, uint32_t> EntityTypeRegistry::typeMap;
-std::vector<std::string> EntityTypeRegistry::typeNames;
-uint32_t EntityTypeRegistry::nextTypeId = 0;
-
 uint32_t EntityTypeRegistry::registerType(const std::string& typeName) {
   auto it = typeMap.find(typeName);
   if (it != typeMap.end()) {
@@ -23,14 +18,14 @@ uint32_t EntityTypeRegistry::registerType(const std::string& typeName) {
   return typeId;
 }
 
-std::string EntityTypeRegistry::getTypeName(uint32_t typeId) {
+std::string EntityTypeRegistry::getTypeName(uint32_t typeId) const {
   if (typeId < typeNames.size()) {
     return typeNames[typeId];
   }
   return "Unknown";
 }
 
-uint32_t EntityTypeRegistry::getTypeId(const std::string& typeName) {
+uint32_t EntityTypeRegistry::getTypeId(const std::string& typeName) const {
   auto it = typeMap.find(typeName);
   if (it != typeMap.end()) {
     return it->second;

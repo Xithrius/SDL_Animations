@@ -32,7 +32,8 @@ class WaypointEntity : public Entity, public IPositionable, public IUpdatable {
 
   // Entity type identification
   EntityType getEntityType() const override {
-    static EntityType typeId = EntityTypeRegistry::registerType("Waypoint");
+    static EntityType typeId =
+        EntityTypeRegistry::getInstance().registerType("Waypoint");
     return typeId;
   }
 

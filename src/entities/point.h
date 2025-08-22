@@ -44,7 +44,8 @@ class PointEntity : public Entity,
 
   // Entity type identification
   EntityType getEntityType() const override {
-    static EntityType typeId = EntityTypeRegistry::registerType("Point");
+    static EntityType typeId =
+        EntityTypeRegistry::getInstance().registerType("Point");
     return typeId;
   }
 

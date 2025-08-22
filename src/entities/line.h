@@ -52,7 +52,8 @@ class LineEntity : public Entity,
 
   // Entity type identification
   EntityType getEntityType() const override {
-    static EntityType typeId = EntityTypeRegistry::registerType("Line");
+    static EntityType typeId =
+        EntityTypeRegistry::getInstance().registerType("Line");
     return typeId;
   }
 
