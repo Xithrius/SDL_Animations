@@ -53,6 +53,13 @@ class AudioSystem {
     // History for smoothing
     std::deque<double> peakHistory;
     std::deque<double> energyHistory;
+
+    // Spectral flux history for beat detection
+    std::vector<double> lastMagnitudes;  // previous frame magnitudes
+    std::deque<double> spectralFluxHistory;
+    double spectralFlux = 0.0;
+    double spectralFluxEMA = 0.0;  // smoothed flux for robust detection
+    Uint64 lastBeatMs = 0;         // refractory timer
   };
 
   AudioSystem();

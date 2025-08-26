@@ -424,6 +424,38 @@ void AudioSystem::updateVisualizationData() {
   // Calculate frequency bands
   calculateFrequencyBands(fft, vizData);
 
+  // Compute spectral flux (band-limited, log-compressed) and EMA smooth it
+  const double fluxLowHz = 30.0;
+  const double fluxHighHz = 4000.0;
+  vizData.spectralFlux = 0.0;
+  if (vizData.lastMagnitudes.size() != fft.magnitudes.size()) {
+    vizData.lastMagnitudes.assign(fft.magnitudes.size(), 0.0);
+  }
+  for (size_t i = 0; i < fft.magnitudes.size(); ++i) {
+    double freq = fft.frequencies[i];
+    if (freq < fluxLowHz || freq > fluxHighHz) continue;
+    double curr = std::log1p(fft.magnitudes[i]);
+    double prev = std::log1p(vizData.lastMagnitudes[i]);
+    double diff = curr - prev;
+    if (diff > 0.0) vizData.spectralFlux += diff;
+  }
+  vizData.lastMagnitudes = fft.magnitudes;
+
+  // EMA smoothing for stability
+  const double emaAlpha = 0.2;  // responsiveness (0..1)
+  if (vizData.spectralFluxEMA == 0.0) {
+    vizData.spectralFluxEMA = vizData.spectralFlux;
+  } else {
+    vizData.spectralFluxEMA = emaAlpha * vizData.spectralFlux +
+                              (1.0 - emaAlpha) * vizData.spectralFluxEMA;
+  }
+
+  // Update spectral flux history of smoothed values (cap to 128 entries)
+  vizData.spectralFluxHistory.push_back(vizData.spectralFluxEMA);
+  while (vizData.spectralFluxHistory.size() > 128) {
+    vizData.spectralFluxHistory.pop_front();
+  }
+
   // Calculate RMS energy
   double sum = 0.0;
   for (const auto& sample : fftBuffer) {
@@ -555,24 +587,62 @@ void AudioSystem::calculateFrequencyBands(const FFTResult& fft,
 }
 
 void AudioSystem::detectBeat(VisualizationData& data) {
-  // Simple beat detection based on energy threshold
-  static double lastEnergy = 0.0;
-  static double energyThreshold = 0.1;
-
-  double energyChange = data.rmsEnergy - lastEnergy;
-
-  if (energyChange > energyThreshold && data.rmsEnergy > 0.05) {
-    data.isBeat = true;
-    data.beatIntensity = std::min(energyChange / energyThreshold, 1.0);
-  } else {
+  // Spectral-flux-based beat detection with adaptive threshold and refractory
+  // period
+  if (data.spectralFluxHistory.empty()) {
     data.isBeat = false;
     data.beatIntensity = 0.0;
+    return;
   }
 
-  lastEnergy = data.rmsEnergy;
+  // Compute mean and stddev of recent smoothed spectral flux (excluding latest
+  // sample)
+  const int window =
+      static_cast<int>(std::min<size_t>(data.spectralFluxHistory.size(), 48));
+  if (window < 8) {
+    data.isBeat = false;
+    data.beatIntensity = 0.0;
+    return;
+  }
 
-  // Adaptive threshold
-  energyThreshold = 0.1 + 0.5 * data.averagePeak;
+  double sum = 0.0;
+  for (int i = 0; i < window - 1; ++i) {
+    sum += data.spectralFluxHistory[data.spectralFluxHistory.size() - 2 - i];
+  }
+  double mean = sum / (window - 1);
+  double var = 0.0;
+  for (int i = 0; i < window - 1; ++i) {
+    double v =
+        data.spectralFluxHistory[data.spectralFluxHistory.size() - 2 - i] -
+        mean;
+    var += v * v;
+  }
+  double stddev = std::sqrt(var / std::max(1, window - 2));
+
+  // Adaptive threshold with sensitivity and floor
+  const double sensitivityK = 1.2;  // lower = more sensitive
+  const double floorBoost = 0.0;    // constant offset if needed
+  double threshold = mean + sensitivityK * stddev + floorBoost;
+
+  double currentFlux = data.spectralFluxHistory.back();
+  Uint64 nowMs = SDL_GetTicks();
+  const Uint64 refractoryMs = 200;  // minimum time between beats
+  const double hysteresis = 0.05 * (stddev + 1e-6);
+
+  if (currentFlux > threshold + hysteresis &&
+      (nowMs - data.lastBeatMs) > refractoryMs) {
+    data.isBeat = true;
+    data.lastBeatMs = nowMs;
+    // Intensity is how much we exceeded threshold, normalized by (stddev +
+    // epsilon)
+    double denom = std::max(1e-6, stddev);
+    data.beatIntensity =
+        std::min(1.0, (currentFlux - threshold) / (2.0 * denom));
+  } else {
+    data.isBeat = false;
+    // Decay intensity for smoother UI feedback
+    data.beatIntensity = std::max(0.0, data.beatIntensity * 0.92);
+  }
 }
 
 void AudioSystem::updatePeakHistory(VisualizationData& data) {
