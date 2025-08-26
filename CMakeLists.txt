@@ -16,6 +16,27 @@ add_subdirectory(lib/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(lib/SDL_ttf EXCLUDE_FROM_ALL)
 add_subdirectory(lib/spdlog EXCLUDE_FROM_ALL)
 
+include(ExternalProject)
+
+# Configure FFTW3 external project
+ExternalProject_Add(fftw3_project
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/fftw-3.3.10
+    CONFIGURE_COMMAND ./configure --prefix=${CMAKE_SOURCE_DIR}/lib/fftw3 --enable-shared
+    BUILD_COMMAND make
+    INSTALL_COMMAND make install
+    BUILD_IN_SOURCE 1
+)
+
+# Create the imported target with properties
+add_library(fftw3 SHARED IMPORTED GLOBAL)
+set_target_properties(fftw3 PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/fftw3/lib/libfftw3.so
+    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/lib/fftw3/include
+)
+
+# Add dependency to ensure FFTW3 is built before we try to use it
+add_dependencies(fftw3 fftw3_project)
+
 # Add include directories for your code and SDL headers
 include_directories(
     src
@@ -45,13 +66,12 @@ set(SOURCES
     src/systems/animation_system.cpp
     src/ui/ui.cpp
     src/ui/debug.cpp
-    src/graphics/embedded_fonts/space_mono_regular.h
+    src/ui/settings.cpp
     src/utils/uuid.cpp
     src/entities/utils/quad_geometry.cpp
     src/entities/isometric_cube/isometric_cube_update_impl.cpp
     src/entities/isometric_cube/isometric_cube_render_impl.cpp
     src/entities/isometric_cube/isometric_cube_pos_impl.cpp
-    src/ui/settings.cpp
 
     # ImGui core files
     lib/imgui/imgui.cpp
@@ -67,11 +87,11 @@ set(SOURCES
 # Define the executable
 add_executable(SDL_Animations ${SOURCES})
 
-# Link SDL3 and SDL3_ttf libraries
 target_link_libraries(
     SDL_Animations
     PRIVATE
     SDL3::SDL3
     SDL3_ttf::SDL3_ttf
     spdlog::spdlog
+    fftw3
 )

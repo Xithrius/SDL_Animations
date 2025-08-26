@@ -2,3 +2,5 @@ build/
 animations
 compile_commands.json
 .cache
+lib/fftw-3.3.10
+lib/fftw3

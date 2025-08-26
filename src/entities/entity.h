@@ -18,24 +18,20 @@ struct BoundingBox {
       : minX(minX), minY(minY), maxX(maxX), maxY(maxY) {}
 };
 
-// Entity type registration system - singleton pattern to avoid globals
 class EntityTypeRegistry {
  private:
   std::unordered_map<std::string, uint32_t> typeMap;
   std::vector<std::string> typeNames;
   uint32_t nextTypeId = 0;
 
-  // Private constructor for singleton
   EntityTypeRegistry() = default;
 
  public:
-  // Singleton instance
   static EntityTypeRegistry& getInstance() {
     static EntityTypeRegistry instance;
     return instance;
   }
 
-  // Delete copy constructor and assignment operator
   EntityTypeRegistry(const EntityTypeRegistry&) = delete;
   EntityTypeRegistry& operator=(const EntityTypeRegistry&) = delete;
 
@@ -44,10 +40,8 @@ class EntityTypeRegistry {
   uint32_t getTypeId(const std::string& typeName) const;
 };
 
-// EntityType is now just a uint32_t for efficiency
 using EntityType = uint32_t;
 
-// Optional interfaces that entities can implement
 class IPositionable {
  public:
   virtual ~IPositionable() = default;
@@ -89,7 +83,6 @@ class Entity {
   std::string uuid;
   AppState* appState = nullptr;
 
-  // Protected method to access AppState (set by EntityManager)
   void setAppState(AppState* appState) { this->appState = appState; }
 
  public:
@@ -97,13 +90,10 @@ class Entity {
 
   virtual ~Entity() = default;
 
-  // Core entity methods - only render is required
   virtual void render(SDL_Renderer* renderer) = 0;
 
-  // Entity type identification - replaces typeid
   virtual EntityType getEntityType() const = 0;
 
-  // Entity state
   virtual void setVisible(bool visible) { this->visible = visible; }
 
   virtual void setActive(bool active) { this->active = active; }
@@ -120,13 +110,8 @@ class Entity {
 
   virtual void update(float) {}
 
-  virtual BoundingBox getBoundingBox() const {
-    // Default implementation returns empty bounding box
-    // Entities should override if they need collision detection
-    return BoundingBox(0, 0, 0, 0);
-  }
+  virtual BoundingBox getBoundingBox() const { return BoundingBox(0, 0, 0, 0); }
 
-  // Interface query methods
   virtual IPositionable* asPositionable() { return nullptr; }
 
   virtual IUpdatable* asUpdatable() { return nullptr; }
@@ -135,11 +120,9 @@ class Entity {
 
   virtual IAnimatable* asAnimatable() { return nullptr; }
 
-  // Friend class to allow EntityManager to set AppState
   friend class EntityManager;
 };
 
-// Entity manager for handling multiple entities
 class EntityManager {
  private:
   std::vector<std::unique_ptr<Entity>> entities;
@@ -149,12 +132,10 @@ class EntityManager {
  public:
   explicit EntityManager(AppState* appState);
 
-  // Entity management
   template <typename T, typename... Args>
   T* createEntity(Args&&... args) {
     auto entity = std::make_unique<T>(std::forward<Args>(args)...);
     T* ptr = entity.get();
-    // Set the AppState for the entity so it can access the renderer
     ptr->setAppState(appState);
     entities.push_back(std::move(entity));
     return ptr;
@@ -163,11 +144,9 @@ class EntityManager {
   void removeEntity(Entity* entity);
   void clear();
 
-  // Update and render all entities
   void update(float deltaTime);
   void render(SDL_Renderer* renderer);
 
-  // Entity queries
   std::vector<Entity*> getEntitiesByType(EntityType type);
   std::vector<Entity*> getAllEntities();
 
