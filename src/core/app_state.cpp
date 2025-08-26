@@ -11,6 +11,12 @@
 AppState::AppState(Context* context) : context(context), entityManager(this) {
   inputSystem = std::make_unique<InputSystem>(this);
   animationSystem = std::make_unique<AnimationSystem>(this);
+  audioSystem = std::make_unique<AudioSystem>();
+  audioUI = std::make_unique<AudioUI>();
+
+  // Set the audio system for the UI
+  audioUI->setAudioSystem(audioSystem.get());
+
   font.loadFont();
 
   renderer.setRenderer(context->renderer);

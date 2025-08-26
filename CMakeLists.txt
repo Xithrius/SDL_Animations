@@ -64,9 +64,11 @@ set(SOURCES
     src/graphics/fonts.cpp
     src/systems/input_system.cpp
     src/systems/animation_system.cpp
+    src/systems/audio_system.cpp
     src/ui/ui.cpp
     src/ui/debug.cpp
     src/ui/settings.cpp
+    src/ui/audio_ui.cpp
     src/utils/uuid.cpp
     src/entities/utils/quad_geometry.cpp
     src/entities/isometric_cube/isometric_cube_update_impl.cpp

@@ -90,6 +90,11 @@ void EventLoop::updateEvents(float deltaTime) {
   this->appState->inputSystem->update();
   this->appState->animationSystem->update(deltaTime);
   this->appState->entityManager.update(deltaTime);
+
+  // Update audio visualization data
+  if (this->appState->audioSystem) {
+    this->appState->audioSystem->updateVisualizationData();
+  }
 }
 
 void EventLoop::updateFPS(float deltaTime) {

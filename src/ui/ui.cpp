@@ -14,6 +14,7 @@ void UI::render() {
   // Render UI components
   this->debug.render();
   this->settings.render();
+  this->audioUI.render();
 
   // Render ImGui
   ImGui::Render();

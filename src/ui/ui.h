@@ -7,6 +7,7 @@
 
 #include "core/app_state.h"
 #include "entities/entity.h"
+#include "ui/audio_ui.h"
 #include "ui/debug.h"
 #include "ui/settings.h"
 
@@ -22,12 +23,17 @@ class UI {
  public:
   DebugUI debug;
   SettingsUI settings;
+  AudioUI audioUI;
 
   UI(AppState* appState, EventLoop* eventLoop)
       : appState(appState),
         eventLoop(eventLoop),
         debug(appState, this),
-        settings(appState, this) {}
+        settings(appState, this),
+        audioUI() {
+    // Set the audio system for the UI
+    audioUI.setAudioSystem(appState->audioSystem.get());
+  }
 
   ~UI() = default;
 

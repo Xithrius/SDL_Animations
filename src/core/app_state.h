@@ -10,6 +10,8 @@
 #include "graphics/fonts.h"
 #include "graphics/renderer.h"
 #include "imgui.h"
+#include "systems/audio_system.h"
+#include "ui/audio_ui.h"
 
 class InputSystem;
 class AnimationSystem;
@@ -30,6 +32,8 @@ class AppState {
   EntityManager entityManager;
   std::unique_ptr<InputSystem> inputSystem;
   std::unique_ptr<AnimationSystem> animationSystem;
+  std::unique_ptr<AudioSystem> audioSystem;
+  std::unique_ptr<AudioUI> audioUI;
 
   AppState(Context* context);
   ~AppState();
