@@ -498,14 +498,30 @@ void AudioSystem::calculateFrequencyBands(const FFTResult& fft,
   const double midFreq = 2000.0;
   const double highMidFreq = 4000.0;
 
+  // Find max magnitude for normalization (avoid DC bin)
+  double maxMagnitude = 0.0;
+  for (size_t i = 1; i < fft.magnitudes.size(); ++i) {
+    maxMagnitude = std::max(maxMagnitude, fft.magnitudes[i]);
+  }
+  if (maxMagnitude <= 0.0) {
+    data.bassLevel = 0.0;
+    data.lowMidLevel = 0.0;
+    data.midLevel = 0.0;
+    data.highMidLevel = 0.0;
+    data.trebleLevel = 0.0;
+    return;
+  }
+
   double bassSum = 0.0, lowMidSum = 0.0, midSum = 0.0, highMidSum = 0.0,
          trebleSum = 0.0;
   int bassCount = 0, lowMidCount = 0, midCount = 0, highMidCount = 0,
       trebleCount = 0;
 
-  for (size_t i = 0; i < fft.frequencies.size(); ++i) {
+  // Skip DC component (i == 0) to avoid biasing bass
+  for (size_t i = 1; i < fft.frequencies.size(); ++i) {
     double freq = fft.frequencies[i];
-    double magnitude = fft.magnitudes[i];
+    // Normalize magnitude to [0,1]
+    double magnitude = fft.magnitudes[i] / maxMagnitude;
 
     if (freq <= bassFreq) {
       bassSum += magnitude;
@@ -525,11 +541,17 @@ void AudioSystem::calculateFrequencyBands(const FFTResult& fft,
     }
   }
 
-  data.bassLevel = (bassCount > 0) ? bassSum / bassCount : 0.0;
-  data.lowMidLevel = (lowMidCount > 0) ? lowMidSum / lowMidCount : 0.0;
-  data.midLevel = (midCount > 0) ? midSum / midCount : 0.0;
-  data.highMidLevel = (highMidCount > 0) ? highMidSum / highMidCount : 0.0;
-  data.trebleLevel = (trebleCount > 0) ? trebleSum / trebleCount : 0.0;
+  auto clamp01 = [](double v) { return std::min(1.0, std::max(0.0, v)); };
+
+  // Average within each band and clamp to [0,1]
+  data.bassLevel = clamp01((bassCount > 0) ? (bassSum / bassCount) : 0.0);
+  data.lowMidLevel =
+      clamp01((lowMidCount > 0) ? (lowMidSum / lowMidCount) : 0.0);
+  data.midLevel = clamp01((midCount > 0) ? (midSum / midCount) : 0.0);
+  data.highMidLevel =
+      clamp01((highMidCount > 0) ? (highMidSum / highMidCount) : 0.0);
+  data.trebleLevel =
+      clamp01((trebleCount > 0) ? (trebleSum / trebleCount) : 0.0);
 }
 
 void AudioSystem::detectBeat(VisualizationData& data) {
