@@ -94,6 +94,7 @@ void EventLoop::updateEvents(float deltaTime) {
   // Update audio visualization data
   if (this->appState->audioSystem) {
     this->appState->audioSystem->updateVisualizationData();
+    this->appState->audioSystem->updatePlayback();
   }
 }
 

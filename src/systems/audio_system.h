@@ -12,10 +12,11 @@
 class AudioSystem {
  public:
   struct AudioData {
-    std::vector<float> samples;
+    std::vector<Sint16>
+        samples;  // Store original Sint16 samples to avoid conversion artifacts
     int sampleRate;
     int channels;
-    int totalSamples;
+    size_t totalSamples;
     bool loaded;
   };
 
@@ -87,6 +88,9 @@ class AudioSystem {
   // Set FFT size (must be power of 2)
   void setFFTSize(int size);
 
+  // Update playback (call this in your main loop)
+  void updatePlayback();
+
  private:
   AudioData audioData;
   VisualizationData vizData;
@@ -99,18 +103,16 @@ class AudioSystem {
 
   // Audio playback
   SDL_AudioStream* audioStream;
+  Uint8* wavData;
+  Uint32 wavDataLen;
+  SDL_AudioSpec originalSpec;
   bool playing;
   bool paused;
   size_t currentSample;
+  Uint64 playbackStartTime;
 
-  // Audio callback data
-  struct AudioCallbackData {
-    AudioSystem* system;
-    std::vector<float> buffer;
-    size_t bufferSize;
-  };
-
-  AudioCallbackData callbackData;
+  // FFT buffer for visualization
+  std::vector<float> fftBuffer;
 
   // Helper functions
   void initializeFFT();
@@ -119,6 +121,7 @@ class AudioSystem {
   void detectBeat(VisualizationData& data);
   void updatePeakHistory(VisualizationData& data);
 
-  // Audio callback function
-  static void audioCallback(void* userdata, Uint8* stream, int len);
+  // Static audio callback for SDL3
+  static void audioCallback(void* userdata, SDL_AudioStream* stream,
+                            int additional_amount, int total_amount);
 };

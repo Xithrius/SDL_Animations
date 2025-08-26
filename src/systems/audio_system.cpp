@@ -11,9 +11,12 @@ AudioSystem::AudioSystem()
       fftOut(nullptr),
       fftSize(2048),
       audioStream(nullptr),
+      wavData(nullptr),
+      wavDataLen(0),
       playing(false),
       paused(false),
-      currentSample(0) {
+      currentSample(0),
+      playbackStartTime(0) {
   std::cout << "AudioSystem: Initializing..." << std::endl;
 
   // Initialize audio data
@@ -39,10 +42,8 @@ AudioSystem::AudioSystem()
   std::cout << "AudioSystem: Initializing FFT..." << std::endl;
   initializeFFT();
 
-  // Initialize callback data
-  callbackData.system = this;
-  callbackData.bufferSize = fftSize;
-  callbackData.buffer.resize(fftSize, 0.0f);
+  // Initialize FFT buffer for visualization
+  fftBuffer.resize(fftSize, 0.0f);
 
   std::cout << "AudioSystem: Initialization complete" << std::endl;
 }
@@ -51,10 +52,33 @@ AudioSystem::~AudioSystem() {
   std::cout << "AudioSystem: Destructing..." << std::endl;
   stopPlayback();
   cleanupFFT();
+
+  // Free WAV data
+  if (wavData) {
+    SDL_free(wavData);
+    wavData = nullptr;
+    wavDataLen = 0;
+  }
+
+  // Ensure audio stream is destroyed
+  if (audioStream) {
+    SDL_DestroyAudioStream(audioStream);
+    audioStream = nullptr;
+  }
 }
 
 bool AudioSystem::loadAudioFile(const std::string& filename) {
   std::cout << "AudioSystem: Loading audio file: " << filename << std::endl;
+
+  // Stop any current playback
+  stopPlayback();
+
+  // Free any existing WAV data
+  if (wavData) {
+    SDL_free(wavData);
+    wavData = nullptr;
+    wavDataLen = 0;
+  }
 
   // Check file extension
   std::string extension = filename.substr(filename.find_last_of(".") + 1);
@@ -67,20 +91,11 @@ bool AudioSystem::loadAudioFile(const std::string& filename) {
     return false;
   }
 
-  SDL_IOStream* io = SDL_IOFromFile(filename.c_str(), "rb");
-  if (!io) {
-    std::cerr << "Failed to open audio file: " << filename << std::endl;
-    return false;
-  }
-
   SDL_AudioSpec spec;
-  Uint8* audioBuffer = nullptr;
-  Uint32 audioLength = 0;
 
-  std::cout << "AudioSystem: About to call SDL_LoadWAV_IO..." << std::endl;
-  if (!SDL_LoadWAV_IO(io, 1, &spec, &audioBuffer, &audioLength)) {
+  std::cout << "AudioSystem: About to call SDL_LoadWAV..." << std::endl;
+  if (!SDL_LoadWAV(filename.c_str(), &spec, &wavData, &wavDataLen)) {
     std::cerr << "Failed to load WAV file: " << SDL_GetError() << std::endl;
-    // Note: SDL_LoadWAV_IO automatically closes the IO stream in SDL3
     return false;
   }
 
@@ -88,89 +103,67 @@ bool AudioSystem::loadAudioFile(const std::string& filename) {
   std::cout << "  Sample rate: " << spec.freq << std::endl;
   std::cout << "  Channels: " << spec.channels << std::endl;
   std::cout << "  Format: " << spec.format << std::endl;
-  std::cout << "  Audio length: " << audioLength << " bytes" << std::endl;
-  std::cout << "  Audio buffer pointer: " << (void*)audioBuffer << std::endl;
+  std::cout << "  Audio length: " << wavDataLen << " bytes" << std::endl;
 
-  // Convert audio to float samples
+  // Store original audio format
   audioData.sampleRate = spec.freq;
   audioData.channels = spec.channels;
   audioData.totalSamples =
-      audioLength / (spec.channels * (spec.format == SDL_AUDIO_S16 ? 2 : 1));
+      wavDataLen / (spec.channels * SDL_AUDIO_BYTESIZE(spec.format));
 
   std::cout << "AudioSystem: Total samples: " << audioData.totalSamples
             << std::endl;
 
-  audioData.samples.resize(audioData.totalSamples);
+  // Convert WAV data to our internal format for FFT analysis
+  // For visualization, we'll use only the first channel if stereo
+  size_t samplesPerChannel = audioData.totalSamples / spec.channels;
+  audioData.samples.resize(samplesPerChannel);
 
-  // Convert to mono if stereo
-  if (spec.channels == 2) {
-    Sint16* samples = reinterpret_cast<Sint16*>(audioBuffer);
-    int totalSamples16 = audioLength / sizeof(Sint16);
-
-    std::cout << "AudioSystem: Converting stereo to mono..." << std::endl;
-    std::cout << "  Total 16-bit samples: " << totalSamples16 << std::endl;
-    std::cout << "  Expected mono samples: " << audioData.totalSamples
-              << std::endl;
-
-    // Ensure we don't go out of bounds
-    int maxSamples = std::min(audioData.totalSamples, totalSamples16 / 2);
-
-    for (int i = 0; i < maxSamples; ++i) {
-      if (i * 2 + 1 < totalSamples16) {
-        float left = samples[i * 2] / 32768.0f;
-        float right = samples[i * 2 + 1] / 32768.0f;
-        audioData.samples[i] = (left + right) * 0.5f;
+  // Convert based on format
+  if (spec.format == SDL_AUDIO_S16) {
+    Sint16* samples = reinterpret_cast<Sint16*>(wavData);
+    for (size_t i = 0; i < samplesPerChannel; ++i) {
+      // For stereo, average the channels; for mono, just use the sample
+      if (spec.channels == 2) {
+        audioData.samples[i] = (samples[i * 2] + samples[i * 2 + 1]) / 2;
       } else {
-        // Pad with zeros if we run out of data
-        audioData.samples[i] = 0.0f;
+        audioData.samples[i] = samples[i];
       }
     }
-
-    // Fill remaining samples with zeros if needed
-    for (int i = maxSamples; i < audioData.totalSamples; ++i) {
-      audioData.samples[i] = 0.0f;
+  } else if (spec.format == SDL_AUDIO_S32) {
+    Sint32* samples = reinterpret_cast<Sint32*>(wavData);
+    for (size_t i = 0; i < samplesPerChannel; ++i) {
+      if (spec.channels == 2) {
+        audioData.samples[i] = static_cast<Sint16>(
+            (samples[i * 2] + samples[i * 2 + 1]) / 2 >> 16);
+      } else {
+        audioData.samples[i] = static_cast<Sint16>(samples[i] >> 16);
+      }
     }
-
-    std::cout << "AudioSystem: Converted " << maxSamples
-              << " stereo samples to mono" << std::endl;
+  } else if (spec.format == SDL_AUDIO_F32) {
+    float* samples = reinterpret_cast<float*>(wavData);
+    for (size_t i = 0; i < samplesPerChannel; ++i) {
+      if (spec.channels == 2) {
+        audioData.samples[i] = static_cast<Sint16>(
+            (samples[i * 2] + samples[i * 2 + 1]) / 2.0f * 32767.0f);
+      } else {
+        audioData.samples[i] = static_cast<Sint16>(samples[i] * 32767.0f);
+      }
+    }
   } else {
-    Sint16* samples = reinterpret_cast<Sint16*>(audioBuffer);
-    int totalSamples16 = audioLength / sizeof(Sint16);
-
-    std::cout << "AudioSystem: Converting mono samples..." << std::endl;
-    std::cout << "  Total 16-bit samples: " << totalSamples16 << std::endl;
-
-    // Ensure we don't go out of bounds
-    int maxSamples = std::min(audioData.totalSamples, totalSamples16);
-
-    for (int i = 0; i < maxSamples; ++i) {
-      audioData.samples[i] = samples[i] / 32768.0f;
-    }
-
-    // Fill remaining samples with zeros if needed
-    for (int i = maxSamples; i < audioData.totalSamples; ++i) {
-      audioData.samples[i] = 0.0f;
-    }
-
-    std::cout << "AudioSystem: Converted " << maxSamples << " mono samples"
-              << std::endl;
+    std::cerr << "Unsupported audio format: " << spec.format << std::endl;
+    SDL_free(wavData);
+    wavData = nullptr;
+    wavDataLen = 0;
+    return false;
   }
 
-  std::cout << "AudioSystem: About to free audio buffer..." << std::endl;
-  std::cout << "  Audio buffer pointer: " << (void*)audioBuffer << std::endl;
+  // Update total samples to reflect the mono conversion
+  audioData.totalSamples = samplesPerChannel;
+  audioData.channels = 1;  // We're now working with mono data for visualization
 
-  if (audioBuffer) {
-    SDL_free(audioBuffer);
-    std::cout << "AudioSystem: Audio buffer freed successfully" << std::endl;
-  } else {
-    std::cout << "AudioSystem: Warning: audioBuffer was null" << std::endl;
-  }
-
-  // Note: SDL_LoadWAV_IO automatically closes the IO stream in SDL3
-  // so we don't need to call SDL_CloseIO(io) here
-  std::cout
-      << "AudioSystem: IO stream was automatically closed by SDL_LoadWAV_IO"
-      << std::endl;
+  // Store the original spec for playback
+  originalSpec = spec;
 
   audioData.loaded = true;
 
@@ -179,19 +172,52 @@ bool AudioSystem::loadAudioFile(const std::string& filename) {
             << ", Rate: " << audioData.sampleRate
             << ", Channels: " << audioData.channels << std::endl;
 
+  // Debug: Check first few samples
+  std::cout << "AudioSystem: First 10 samples: ";
+  for (int i = 0; i < std::min(10, static_cast<int>(audioData.samples.size()));
+       ++i) {
+    std::cout << audioData.samples[i] << " ";
+  }
+  std::cout << std::endl;
+
   return true;
 }
 
 void AudioSystem::startPlayback() {
   if (!audioData.loaded || playing) return;
 
-  // For now, we'll use a simpler approach without audio streaming
-  // since the SDL3 audio callback API is different
+  // Initialize SDL audio if not already done
+  if (SDL_WasInit(SDL_INIT_AUDIO) == 0) {
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+      std::cerr << "Failed to initialize SDL audio: " << SDL_GetError()
+                << std::endl;
+      return;
+    }
+  }
+
+  // Create audio stream using the original WAV format
+  audioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+                                          &originalSpec, NULL, NULL);
+
+  if (!audioStream) {
+    std::cerr << "Failed to create audio stream: " << SDL_GetError()
+              << std::endl;
+    return;
+  }
+
+  // Start playback
   currentSample = 0;
+  playbackStartTime = SDL_GetTicks();
   playing = true;
   paused = false;
 
-  std::cout << "Audio playback started (simulated)" << std::endl;
+  // Resume the audio stream (SDL3 opens streams in paused state)
+  SDL_ResumeAudioStreamDevice(audioStream);
+
+  std::cout << "Audio playback started" << std::endl;
+  std::cout << "  Sample rate: " << originalSpec.freq << std::endl;
+  std::cout << "  Channels: " << originalSpec.channels << std::endl;
+  std::cout << "  Format: " << originalSpec.format << std::endl;
 }
 
 void AudioSystem::stopPlayback() {
@@ -199,6 +225,13 @@ void AudioSystem::stopPlayback() {
     playing = false;
     paused = false;
     currentSample = 0;
+
+    // Destroy the audio stream
+    if (audioStream) {
+      SDL_DestroyAudioStream(audioStream);
+      audioStream = nullptr;
+    }
+
     std::cout << "Audio playback stopped" << std::endl;
   }
 }
@@ -206,21 +239,51 @@ void AudioSystem::stopPlayback() {
 void AudioSystem::pausePlayback() {
   if (playing && !paused) {
     paused = true;
+    if (audioStream) {
+      SDL_PauseAudioStreamDevice(audioStream);
+    }
     std::cout << "Audio playback paused" << std::endl;
   } else if (playing && paused) {
     paused = false;
+    if (audioStream) {
+      SDL_ResumeAudioStreamDevice(audioStream);
+    }
     std::cout << "Audio playback resumed" << std::endl;
   }
 }
 
 double AudioSystem::getPlaybackPosition() const {
-  if (!audioData.loaded) return 0.0;
-  return static_cast<double>(currentSample) / audioData.sampleRate;
+  if (!audioData.loaded || !playing) return 0.0;
+
+  Uint64 currentTime = SDL_GetTicks();
+  if (playbackStartTime == 0) return 0.0;
+
+  Uint64 elapsedMs = currentTime - playbackStartTime;
+  double elapsedSeconds = elapsedMs / 1000.0;
+  return elapsedSeconds;
 }
 
 double AudioSystem::getDuration() const {
   if (!audioData.loaded) return 0.0;
   return static_cast<double>(audioData.totalSamples) / audioData.sampleRate;
+}
+
+void AudioSystem::updatePlayback() {
+  if (!playing || !audioStream || !wavData) return;
+
+  // Check if we need to feed the audio stream more data
+  // We're being lazy here, but if there's less than the entire wav file left to
+  // play, just shove a whole copy of it into the queue, so we always have tons
+  // of data queued for playback
+  if (SDL_GetAudioStreamQueued(audioStream) < (int)wavDataLen) {
+    // Feed more data to the stream. It will queue at the end, and trickle out
+    // as the hardware needs more data
+    SDL_PutAudioStreamData(audioStream, wavData, wavDataLen);
+
+    // Update current sample position for visualization
+    currentSample =
+        (currentSample + audioData.totalSamples) % audioData.totalSamples;
+  }
 }
 
 void AudioSystem::initializeFFT() {
@@ -303,64 +366,70 @@ AudioSystem::FFTResult AudioSystem::performFFT(
 
 void AudioSystem::updateVisualizationData() {
   // Initialize buffer if empty
-  if (callbackData.buffer.empty()) {
-    callbackData.buffer.resize(fftSize, 0.0f);
+  if (fftBuffer.empty()) {
+    fftBuffer.resize(fftSize, 0.0f);
   }
 
-  if (!playing) {
-    // If not playing, just return with zero data
+  if (!playing || !audioData.loaded) {
+    // If not playing or no audio loaded, just return with zero data
+    std::fill(fftBuffer.begin(), fftBuffer.end(), 0.0f);
     return;
   }
 
-  // If audio is loaded and playing, simulate audio data by reading from the
-  // loaded samples
-  if (audioData.loaded && playing) {
-    // Simulate audio data by reading from the loaded samples
-    size_t startSample = currentSample;
-    size_t numSamples = std::min(static_cast<size_t>(fftSize),
-                                 audioData.samples.size() - startSample);
+  // Calculate the actual current playback position based on elapsed time
+  Uint64 currentTime = SDL_GetTicks();
+  if (playbackStartTime == 0) {
+    playbackStartTime = currentTime;
+  }
 
-    if (numSamples > 0) {
-      callbackData.buffer.assign(
-          audioData.samples.begin() + startSample,
-          audioData.samples.begin() + startSample + numSamples);
+  Uint64 elapsedMs = currentTime - playbackStartTime;
+  double elapsedSeconds = elapsedMs / 1000.0;
+  size_t actualSamplePosition =
+      static_cast<size_t>(elapsedSeconds * audioData.sampleRate) %
+      audioData.totalSamples;
 
-      // Pad with zeros if needed
-      while (callbackData.buffer.size() < static_cast<size_t>(fftSize)) {
-        callbackData.buffer.push_back(0.0f);
-      }
+  // Get current audio data for visualization using the actual playback position
+  size_t startSample = actualSamplePosition;
+  size_t numSamples = std::min(static_cast<size_t>(fftSize),
+                               audioData.samples.size() - startSample);
 
-      // Advance sample position
-      currentSample += numSamples;
-      if (currentSample >= audioData.samples.size()) {
-        currentSample = 0;  // Loop
-      }
-    } else {
-      // No samples available, fill with zeros
-      std::fill(callbackData.buffer.begin(), callbackData.buffer.end(), 0.0f);
+  if (numSamples > 0) {
+    // Convert Sint16 samples to normalized float values for FFT
+    fftBuffer.clear();
+    fftBuffer.reserve(fftSize);
+
+    for (size_t i = 0; i < numSamples; ++i) {
+      Sint16 sample = audioData.samples[startSample + i];
+      float normalizedSample = static_cast<float>(sample) / 32767.0f;
+      fftBuffer.push_back(normalizedSample);
+    }
+
+    // Pad with zeros if needed
+    while (fftBuffer.size() < static_cast<size_t>(fftSize)) {
+      fftBuffer.push_back(0.0f);
     }
   } else {
-    // No audio loaded, fill with zeros
-    std::fill(callbackData.buffer.begin(), callbackData.buffer.end(), 0.0f);
+    // No samples available, fill with zeros
+    std::fill(fftBuffer.begin(), fftBuffer.end(), 0.0f);
   }
 
   // Ensure buffer has the correct size
-  if (callbackData.buffer.size() != static_cast<size_t>(fftSize)) {
-    callbackData.buffer.resize(fftSize, 0.0f);
+  if (fftBuffer.size() != static_cast<size_t>(fftSize)) {
+    fftBuffer.resize(fftSize, 0.0f);
   }
 
   // Perform FFT on current buffer
-  FFTResult fft = performFFT(callbackData.buffer);
+  FFTResult fft = performFFT(fftBuffer);
 
   // Calculate frequency bands
   calculateFrequencyBands(fft, vizData);
 
   // Calculate RMS energy
   double sum = 0.0;
-  for (const auto& sample : callbackData.buffer) {
+  for (const auto& sample : fftBuffer) {
     sum += sample * sample;
   }
-  vizData.rmsEnergy = std::sqrt(sum / callbackData.buffer.size());
+  vizData.rmsEnergy = std::sqrt(sum / fftBuffer.size());
 
   // Calculate spectral centroid
   double weightedSum = 0.0;
@@ -392,9 +461,8 @@ void AudioSystem::updateVisualizationData() {
   }
 
   // Update peak detection
-  if (!callbackData.buffer.empty()) {
-    vizData.currentPeak = *std::max_element(callbackData.buffer.begin(),
-                                            callbackData.buffer.end());
+  if (!fftBuffer.empty()) {
+    vizData.currentPeak = *std::max_element(fftBuffer.begin(), fftBuffer.end());
   } else {
     vizData.currentPeak = 0.0;
   }
@@ -402,6 +470,24 @@ void AudioSystem::updateVisualizationData() {
 
   // Detect beats
   detectBeat(vizData);
+
+  // Debug output (remove this later)
+  static int debugCounter = 0;
+  if (++debugCounter % 60 ==
+      0) {  // Print every 60 frames (about once per second)
+    std::cout << "AudioSystem: Visualization update - "
+              << "Playing: " << playing << ", RMS Energy: " << vizData.rmsEnergy
+              << ", Current Peak: " << vizData.currentPeak
+              << ", Bass Level: " << vizData.bassLevel
+              << ", Sample Position: " << actualSamplePosition
+              << ", FFT Buffer Size: " << fftBuffer.size()
+              << ", Max FFT Magnitude: "
+              << (fft.magnitudes.empty()
+                      ? 0.0
+                      : *std::max_element(fft.magnitudes.begin(),
+                                          fft.magnitudes.end()))
+              << std::endl;
+  }
 }
 
 void AudioSystem::calculateFrequencyBands(const FFTResult& fft,
@@ -492,15 +578,6 @@ void AudioSystem::setFFTSize(int size) {
     cleanupFFT();
     fftSize = size;
     initializeFFT();
-    callbackData.bufferSize = size;
-    callbackData.buffer.resize(size);
+    fftBuffer.resize(size);
   }
-}
-
-void AudioSystem::audioCallback(void* userdata, Uint8* stream, int len) {
-  // This callback is not used in the current implementation
-  // since we're using a simulated approach for audio playback
-  (void)userdata;
-  (void)stream;
-  (void)len;
 }
